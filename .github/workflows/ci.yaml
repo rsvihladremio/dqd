@@ -1,0 +1,20 @@
+name: CI Workflow
+
+on: [push]
+
+jobs:
+  build-and-run:
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - name: Verify build and test
+      run: ./mvnw package
+    - name: Run linting
+      run: ./mvnw spotless:check
+    

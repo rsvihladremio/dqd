@@ -1,0 +1,13 @@
+tables:
+  - name: '"ns 1".table1'
+    columns:
+      - name: accountStatus
+        values: [Active, Inactive, Suspended ]
+      - name: accountNumber
+        values: [ 99, 100, 123451, 123452, 123453, 123454, 123455, 123456, 123457 ]
+  - name: ns2.table1
+    columns:
+      - name: accountNumber
+        values: [ 0, 1, 2, 3, 123451, 123452, 123453, 123454, 123455, 123456, 123457 ]
+      - name: productType
+        values: [ Widget_A, Widget_B, Widget_C ]

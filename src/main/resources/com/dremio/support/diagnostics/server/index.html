@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>DQD Analysis page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="google" content="notranslate">
+    <link rel="shortcut icon" type="image/png" href="/img/favicon-small.png" />
+    <link href="https://cdn.jsdelivr.net/npm/beercss@3.0.8/dist/cdn/beer.min.css" rel="stylesheet">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.0.8/dist/cdn/beer.min.js"></script>
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@0.1.5/dist/cdn/material-dynamic-colors.min.js"></script>
+    <style>
+        :root,
+        body.light {
+            --primary: #006493;
+            --on-primary: #ffffff;
+            --primary-container: #cae6ff;
+            --on-primary-container: #001e30;
+            --secondary: #50606e;
+            --on-secondary: #ffffff;
+            --secondary-container: #d3e5f5;
+            --on-secondary-container: #0c1d29;
+            --tertiary: #65587b;
+            --on-tertiary: #ffffff;
+            --tertiary-container: #ebddff;
+            --on-tertiary-container: #201634;
+            --error: #ba1a1a;
+            --on-error: #ffffff;
+            --error-container: #ffdad6;
+            --on-error-container: #410002;
+            --background: #fcfcff;
+            --on-background: #1a1c1e;
+            --surface: #fcfcff;
+            --on-surface: #1a1c1e;
+            --surface-variant: #dde3ea;
+            --on-surface-variant: #41474d;
+            --outline: #72787e;
+            --outline-variant: #c1c7ce;
+            --scrim: #000000;
+            --inverse-surface: #2e3133;
+            --inverse-on-surface: #f0f0f3;
+            --inverse-primary: #8dcdff;
+        }
+    </style>
+    <script>
+        async function setVersion() {
+            const response = await fetch("/about.json");
+            const aboutJson = await response.json();
+            console.log(aboutJson);
+            const version = aboutJson["version"];
+            document.querySelectorAll('.about_version').forEach((h) => h.innerText = "DQD " + version);
+        }
+
+        function showButton(that, numFiles, buttonId) {
+            let filesSelected = that.files.length
+            if (filesSelected === numFiles) {
+                document.querySelector('#' + buttonId).disabled = false;
+            } else {
+                document.querySelector('#' + buttonId).disabled = true;
+            }
+        };
+        function showLoader() {
+            document.getElementById("loader").classList.add('active');
+        };
+        window.addEventListener("pageshow", () => {
+            setVersion();
+            document.getElementById("loader").className = 'modal';
+            const theDate120DaysAgo = new Date();
+            theDate120DaysAgo.setDate(theDate120DaysAgo.getDate() - 120);
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const startDatePicker = document.getElementById("start-date-queries")
+            const startDate = theDate120DaysAgo.toISOString().substring(0, 10);
+            startDatePicker.value = startDate;
+            document.getElementById("end-date-queries").value = tomorrow.toISOString().substring(0, 10);
+        });
+
+        function showDetailedReport(that, simpleFormID, detailedFormID) {
+            let simpleForm = document.getElementById(simpleFormID);
+            let detailedForm = document.getElementById(detailedFormID);
+            if (that.checked) {
+                simpleForm.style.display = 'none';
+                detailedForm.style.display = 'block';
+            } else {
+                simpleForm.style.display = 'block';
+                detailedForm.style.display = 'none';
+            }
+        }
+    </script>
+    <style>
+        section:not(:target):not(#home),
+        section:target~#home {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="left m l">
+        <a href="#">
+            <i>home</i>
+            <div>Home</div>
+        </a>
+        <a href="#profile">
+            <i>equalizer</i>
+            <div>Profile Analysis</div>
+        </a>
+        <a href="#profiles-comparison">
+            <i>compare_arrows</i>
+            <div>Profile Comparison</div>
+        </a>
+        <a href="#queries-json">
+            <i>equalizer</i>
+            <div>Queries.json Analysis</div>
+        </a>
+        <a href="#schema">
+            <i>database</i>
+            <div>Schema Generation</div>
+        </a>
+    </nav>
+    <main class="responsive">
+        <section id="queries-json">
+            <header class="responsive">
+                <nav>
+                    <h4 class="max center-align about_version">DQD </h4>
+                </nav>
+            </header>
+            <article class="fill">
+                <h5>Queries.JSON Tool Purpose</h5>
+                <p>Queries.json file analysis and summary, for maximum report resolution limit files to a day, 30 days
+                    now officially supported</p>
+            </article>
+            <article class="fill">
+                <h5>Upload Form</h5>
+                <form id="detailed-queries-form" method="POST" enctype="multipart/form-data" action="/queriesjson">
+                    <caption>Detailed Report</caption>
+                    <fieldset>
+                        <div class="grid">
+                            <div class="s3">
+                                <div class="field label prefix border classic-report">
+                                    <input id="start-date-queries" type="date" name="start_date" />
+                                    <label>Start Date</label>
+                                    <i>today</i>
+                                    <span class="helper">filter queries that start before this date</span>
+                                </div>
+                            </div>
+                            <div class="s3">
+                                <div class="field label prefix border classic-report">
+                                    <i>schedule</i>
+                                    <input type="time" name="start_time" value="00:00" />
+                                    <label>Start Time</label>
+                                    <span class="helper">filter queries that start before this time</span>
+                                </div>
+                            </div>
+                            <div class="s3">
+                                <div class="field label prefix border classic-report">
+                                    <input id="end-date-queries" type="date" name="end_date" />
+                                    <label>End Date</label>
+                                    <i>today</i>
+                                    <span class="helper">filter queries that start after this date</span>
+                                </div>
+                            </div>
+                            <div class="s3">
+                                <div class="field label prefix border classic-report">
+                                    <i>schedule</i>
+                                    <input type="time" name="end_time" value="00:00" />
+                                    <label>End Time</label>
+                                    <span class="helper">filter queries that end after this time</span>
+                                </div>
+                            </div>
+                            <div class="s6">
+                                <div class="field prefix border classic-report">
+                                    <select name="limit">
+                                        <option value="1">1 </option>
+                                        <option default value="5">5</option>
+                                        <option value="25">25</option>
+                                        <option value="100">100</option>
+                                        <option value="1000">1000</option>
+                                    </select><i>arrow_drop_down</i>
+                                    <span class="helper">number of problematic queries per category (more is
+                                        slower)</span>
+                                </div>
+
+                            </div>
+                            <div class="s6">
+                                <div class="field prefix border classic-report">
+                                    <select name="fallback_bucket_seconds">
+                                        <option value="86400">Daily</option>
+                                        <option value="3600">Hourly</option>
+                                        <option value="600">10 Minute (caution may take a long time)</option>
+                                        <option value="60">1 Minute (caution may take a VERY long time)</option>
+                                    </select><i>arrow_drop_down</i>
+                                    <span class="helper">Large report bucket size</span>
+                                </div>
+                            </div>
+                            <div class="s12">
+                                <input name="query_report_type" type="hidden" value="INTERACTIVE" />
+                                <div class="field label prefix suffix border">
+                                    <i>attach_file</i>
+                                    <input type="text">
+                                    <input type="file" name="queriesjson" accept=".tar, .gz, .tgz, .zip, .json"
+                                        onchange="showButton(this, 1, 'detailed-queriesjson-btn');">
+                                    <label>Queries.json (text file, *.tar, *.tgz, *.gz or *.zip)</label>
+                                    <span class="helper">attach one profile in an archive file or as raw
+                                        text</span>
+                                    <i>attach_file</i>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="detailed-queriesjson-btn" disabled onclick="showLoader();">analyze</button>
+                    </fieldset>
+                </form>
+            </article>
+        </section>
+        <section id="profiles-comparison">
+            <header class="responsive">
+                <nav>
+                    <h4 class="max center-align about_version">DQD </h4>
+                </nav>
+            </header>
+            <article class="fill">
+                <h5>Profile Comparison Tool Purpose</h5>
+                <p>Quickly compare 2 profile.json files against one another</p>
+            </article>
+
+            <article class="fill">
+                <h5>Upload Form</h5>
+                <form id="detailed-profiles-form" method="POST" enctype="multipart/form-data" action="/profiles">
+                    <caption>Detailed Report</caption>
+                    <fieldset>
+                        <div class="field label prefix suffix border">
+                            <i>attach_file</i>
+                            <input type="text">
+                            <input type="file" name="compare_profile" multiple="multiple"
+                                accept=".tar, .gz, .tgz, .zip, .json"
+                                onchange="showButton(this, 2, 'detailed-profiles-btn');">
+                            <label>Select 2 profile.json or archive files</label>
+                            <span class="helper">attach two profiles in separate text or archive files (*.tar, *.gz.,
+                                *.tgz, *.zip)</span>
+                            <i>attach_file</i>
+                        </div>
+                        <label class="checkbox">
+                            <input type="checkbox" name="show_plan_comparison">
+                            <span>Show plan comparison</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" name="show_convert_to_rel">
+                            <span>Show ConvertToRel comparison</span>
+                        </label>
+                        <button id="detailed-profiles-btn" disabled onclick="showLoader();">compare</button>
+                    </fieldset>
+                </form>
+            </article>
+        </section>
+        <section id="profile">
+            <header class="responsive">
+                <nav>
+                    <h4 class="max center-align about_version">DQD </h4>
+                </nav>
+            </header>
+            <article class="fill">
+                <h5>Single Profile Tool Purpose</h5>
+                <p>Simple comparison of profile statistics, operator performance and plan difference</p>
+            </article>
+            <article class="fill">
+                <h5>Upload Form</h5>
+                <label class="checkbox">
+                    <input type="checkbox" name="show_detail_view"
+                        onclick="showDetailedReport(this, 'simple-profile-form', 'detailed-profile-form');" />
+                    <span>Show Detailed report (takes longer)</span>
+                </label>
+                <form id="simple-profile-form" method="POST" enctype="multipart/form-data" action="/simple-profile">
+                    <caption>Summary Report</caption>
+                    <fieldset>
+                        <div class="field label prefix suffix border">
+                            <i>attach_file</i>
+                            <input type="text">
+                            <input type="file" name="profile1" accept=".tar, .gz, .tgz, .zip, .json"
+                                onchange="showButton(this, 1, 'simple-profile-btn');">
+                            <label>Profiles</label>
+                            <span class="helper">attach one profile in separate text or archive files (*.tar, *.gz.,
+                                *.tgz, *.zip)</span>
+                            <i>attach_file</i>
+                        </div>
+
+                        <button id="simple-profile-btn" disabled onclick="showLoader();">analyze</button>
+                    </fieldset>
+                </form>
+                <form id="detailed-profile-form" style="display: none" method="POST" enctype="multipart/form-data"
+                    action="/profile">
+                    <caption>Detailed Report</caption>
+                    <fieldset>
+                        <div class="field label prefix suffix border">
+                            <i>attach_file</i>
+                            <input type="text">
+                            <input type="file" name="profile1" accept=".tar, .gz, .tgz, .zip, .json"
+                                onchange="showButton(this, 1, 'detailed-profile-btn');">
+                            <label>Profiles</label>
+                            <span class="helper">attach one profile in separate text or archive files (*.tar, *.gz.,
+                                *.tgz, *.zip)</span>
+                            <i>attach_file</i>
+                        </div>
+                        <label class="checkbox">
+                            <input type="checkbox" name="show_plan_details">
+                            <span>Show plan details</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" name="show_convert_to_rel">
+                            <span>Show ConvertToRel</span>
+                        </label>
+
+                        <button id="detailed-profile-btn" disabled onclick="showLoader();">analyze</button>
+                    </fieldset>
+                </form>
+            </article>
+        </section>
+        <section id="schema">
+            <header class="responsive">
+                <nav>
+                    <h4 class="max center-align about_version">DQD </h4>
+                </nav>
+            </header>
+            <article class="fill">
+                <h5>Schema Generator Tool Purpose</h5>
+                <p>Also known as the <b>reproduction tool</b>, it will creates scripts that one can use to recreate the
+                    sources, PDS and VDS used in the profile.json.
+            </article>
+
+            <article class="fill">
+                <h5>Directions - Schema Generator</h5>
+                <div class="row">
+                    <div>1. Upload profile.json (in zip or extracted) and click upload you will receive a zip file</div>
+                </div>
+                <div class="row">
+                    <div>2. Extract zip</div>
+                </div>
+                <div class="row">
+                    <div>3. Open terminal (Mac, WSL or Linux) and go to folder where you extracted zip</div>
+                </div>
+                <div class="row">
+                    <div>4. Run <b>bash create.sh --host "http://localhost:9047" -u "myuser" -p "mypass"</b></div>
+                </div>
+                <div class="row">
+                    <div>5. If script fails consult the debug.sql and look for issues in sql statements</div>
+                </div>
+                <div class="row">
+                    <div>6. Also consider manually creating any missing data sources and try running the script again
+                    </div>
+                </div>
+            </article>
+            <div class="modal" id="modal">
+                <h5>Example Column Override Yaml</h5>
+                <pre><code>
+tables:
+  - name: '"ns 1".table1'
+    columns:
+      - name: status
+        values: [Active, Inactive, Suspended ]
+      - name: customerType 
+        values: [ Silver, Gold, Platinum ]
+                    </code></pre>
+                <nav>
+                    <button data-ui="#modal">Close</button>
+                </nav>
+            </div>
+
+            <article class="fill">
+                <h5>Upload Form</h5>
+                <form method="POST" enctype="multipart/form-data" action="/reproduction">
+                    <fieldset>
+                        <div class="field label border">
+                            <input type="text" name="records" value="20">
+                            <label>PDS Records</label>
+                            <span class="helper">per PDS</span>
+                        </div>
+                        <div class="field label border">
+                            <input type="text" name="timeout" value="60">
+                            <label>Timeout Seconds</label>
+                            <span class="helper">used when creating PDS and VDS records</span>
+                        </div>
+                        <div class="field label suffix border">
+                            <select name="defaultCtasFormat">
+                                <option value="">Default</option>
+                                <option>ICEBERG</option>
+                                <option>PARQUET</option>
+                            </select>
+                            <i>arrow_drop_down</i>
+                            <label class="active">Default CTAS Format for sources</label>
+                            <span class="helper">optional: if this is not specified whatever the default for the version
+                                you have specified will be used</span>
+                        </div>
+                        <div class="field label border">
+                            <input type="text" name="nasPath">
+                            <label>Base source directory</label>
+                            <span class="helper">optional: path accessible on all executors</span>
+                        </div>
+                        <div class="medium-divider"></div>
+                        <div class="field textarea label border extra">
+                            <textarea name="columnDefYaml"></textarea>
+                            <label>Column Definition Override</label>
+                            <span class="helper">Use this when you need specific column values, click the question mark
+                                to see an example<i class="medium" data-ui="#modal">help</i> </span>
+                        </div>
+                        <div class="medium-divider"></div>
+                        <div class="field label prefix suffix border">
+                            <i>attach_file</i>
+                            <input type="text">
+                            <input type="file" name="profile" accept=".tar, .gz, .tgz, .zip, .json"
+                                onchange="showButton(this, 1, 'repro-btn');">
+                            <label>Profiles</label>
+                            <span class="helper">attach one profile in a text file, *.tar, *.tgz, *.gz or *.zip
+                                file</span>
+                            <i>attach_file</i>
+                        </div>
+
+                        <button id="repro-btn" disabled>generate</button>
+                    </fieldset>
+                </form>
+            </article>
+        </section>
+        <section id="home">
+            <header class="responsive">
+                <h4 class="max center-align about_version">DQD </h4>
+            </header>
+            <article class="fill">
+                <h5>Profile.json and Queries.json Tools Written by the Support Tooling Team</h5>
+                <p>
+                    If you find something you do not like here or would like to improve Dremio Query Doctor (DQD) you
+                    can <a class="row wave" href="https://github.com/rsvihladremio/dqd">submit code or issues here</a>
+                </p>
+            </article>
+        </section>
+        <div id="loader" class="modal">
+            <h5>Loading...</h5>
+            <div>Please wait</div>
+            <a class="loader large"></a>
+        </div>
+    </main>
+</body>

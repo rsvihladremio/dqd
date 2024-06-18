@@ -1,0 +1,16 @@
+queries:
+  - query: select * from  samples."samples.dremio.com"."nyc-taxi-trips" where passenger_count = :count
+    count:
+      - 1
+      - 2
+      - 3
+      - 4
+    frequency: 1
+  - query: select * FROM Samples."samples.dremio.com"."SF weather 2018-2019.csv" where "DATE" between ':start' and ':end'
+    start:
+      - '2018-02-01'
+    end:
+      - '2018-02-10'
+      - '2018-02-11'
+      - '2018-02-12'
+    frequency: 1
