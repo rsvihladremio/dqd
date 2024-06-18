@@ -44,7 +44,6 @@ public class Query {
   private float queryCost;
   private String queueName;
   private long poolWaitTime; // in milliseconds
-  // https//github.com/dremio/dremio/commit/d35c86fd9f27a75a36da88847e597ae519cf9ef9#diff-ccfa6fd859ea1c6d0a88df31e12a83ab24a2fc45717f2175c0a5b1e0d045e1bdR78
   private long pendingTime;
   private long metadataRetrievalTime;
   private long planningTime;
