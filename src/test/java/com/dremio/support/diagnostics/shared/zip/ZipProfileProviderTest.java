@@ -13,7 +13,8 @@
  */
 package com.dremio.support.diagnostics.shared.zip;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.dremio.support.diagnostics.profilejson.ProfileJSONParser;
 import com.dremio.support.diagnostics.shared.PathAndStream;
@@ -48,12 +49,12 @@ class ZipProfileProviderTest {
 
   @Test
   void testThatProfileIsNotNull() {
-    assertThat(profile).isNotNull();
+    assertNotNull(profile);
   }
 
   @Test
   void testThatDremioVersionIsParsed() {
-    assertThat(profile.getDremioVersion()).isEqualTo("21.6.2-202210141639540835-ecf959e4");
+    assertEquals(profile.getDremioVersion(), "21.6.2-202210141639540835-ecf959e4");
   }
 }
 
@@ -78,12 +79,12 @@ class ZipProfileWithMultipleJSONValues {
 
   @Test
   void testProfileIsNotNull() {
-    assertThat(profile).isNotNull();
+    assertNotNull(profile);
   }
 
   @Test
   void testWeParsedTheProfileJson() throws IOException {
     // verifies we found the right json
-    assertThat(profile.getForeman()).isNotNull();
+    assertNotNull(profile.getForeman());
   }
 }

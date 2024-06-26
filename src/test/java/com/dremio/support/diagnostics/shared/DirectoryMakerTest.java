@@ -13,7 +13,7 @@
  */
 package com.dremio.support.diagnostics.shared;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,11 +36,11 @@ class DirectoryMakerTest {
 
   @Test
   void testMakeDirectorySucceedsWith1AsNumber() {
-    assertThat(newDir.endsWith("dremio-repro-source-1")).isTrue();
+    assertTrue(newDir.endsWith("dremio-repro-source-1"));
   }
 
   @Test
   void testNumberIncrements() {
-    assertThat(newDir2.endsWith("dremio-repro-source-2")).isTrue();
+    assertTrue(newDir2.endsWith("dremio-repro-source-2"));
   }
 }

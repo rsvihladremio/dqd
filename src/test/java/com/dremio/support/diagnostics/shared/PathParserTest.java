@@ -13,8 +13,9 @@
  */
 package com.dremio.support.diagnostics.shared;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,17 +47,17 @@ class PathParserTest {
 
     @Test
     void test2FilesAreFound() {
-      assertThat(files.length).isEqualTo(2);
+      assertEquals(files.length,2);
     }
 
     @Test
     void testFirstFileIsFound() {
-      assertThat(files[0]).endsWith(firstProfile);
+      assertTrue(files[0].endsWith(firstProfile));
     }
 
     @Test
     void testSecondFileIsFound() {
-      assertThat(files[1]).endsWith(secondProfile);
+      assertTrue(files[1].endsWith(secondProfile));
     }
   }
 
@@ -78,17 +79,17 @@ class PathParserTest {
 
     @Test
     void testThereAre2Files() throws FileNotFoundException {
-      assertThat(files.length).isEqualTo(2);
+      assertEquals(files.length, 2);
     }
 
     @Test
     void testFirstFileIsFound() {
-      assertThat(files[0]).endsWith(firstProfile);
+      assertTrue(files[0].endsWith(firstProfile));
     }
 
     @Test
     void testSecondFileIsFound() {
-      assertThat(files[1]).endsWith(secondProfile);
+      assertTrue(files[1].endsWith(secondProfile));
     }
   }
 
@@ -97,15 +98,16 @@ class PathParserTest {
 
     @Test
     void testUnknownFilesResultInAnException() {
-      assertThatThrownBy(
-              () ->
-                  new PathParser()
+      try {
+             new PathParser()
                       .convertPathToFiles(
                           new File(
                                   "src/test/resources/com/dremio/support/diagnostics/testdir/testfile.json,NOWHEREVALID")
-                              .getAbsolutePath()))
-          .isInstanceOf(FileNotFoundException.class)
-          .hasMessageContaining("NOWHEREVALID");
+                              .getAbsolutePath());
+                              assertFalse(true, "we should not hit this it means there was no exception");
+      }catch(FileNotFoundException ex){
+        assertTrue(ex.getMessage().contains("NOWHEREVALID"));
+      }
     }
   }
 
@@ -125,12 +127,12 @@ class PathParserTest {
 
     @Test
     void testOnlyOneFileFound() {
-      assertThat(files.length).isEqualTo(1);
+      assertEquals(files.length,1);
     }
 
     @Test
     void testItIsTheCorrectFile() {
-      assertThat(files[0]).endsWith(firstProfile);
+      assertTrue(files[0].endsWith(firstProfile));
     }
   }
 
@@ -138,10 +140,12 @@ class PathParserTest {
   static class PathParserWhenSingleFileUsedIsNotFoundTest {
     @Test
     void testThrowsException() {
-      assertThatThrownBy(
-              () -> new PathParser().convertPathToFiles(new File("NOWHEREVALID").getAbsolutePath()))
-          .isInstanceOf(FileNotFoundException.class)
-          .hasMessageContaining("NOWHEREVALID");
+      try{
+          new PathParser().convertPathToFiles(new File("NOWHEREVALID").getAbsolutePath());
+          assertFalse(true, "we should not hit this it means there was no exception");
+      }catch(FileNotFoundException ex){
+        assertTrue(ex.getMessage().contains("NOWHEREVALID"));
+      }
     }
   }
 }

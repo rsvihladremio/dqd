@@ -95,12 +95,12 @@ public class ProfileJson implements Callable<Integer> {
                   new PathAndStream(this.fileToCompare.toPath(), fsToCompare));
           Exec exec =
               new Exec(new ProfileDifferenceReport(), profileProvider, profileToCompareProvider);
-          exec.run(showPlanDetails);
+          exec.run();
         }
       } else {
         // only does console
         final SingleFileExec singleFileExec = new SingleFileExec(profileProvider);
-        singleFileExec.run(showPlanDetails);
+        singleFileExec.run();
       }
     }
     return 0;

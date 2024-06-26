@@ -39,11 +39,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class PostQueriesJson implements Handler {
   private static final Logger logger = Logger.getLogger(PostQueriesJson.class.getName());
-  private final long complexityLimit;
   private final UsageLogger usageLogger;
 
-  public PostQueriesJson(final long complexityLimit, final UsageLogger usageLogger) {
-    this.complexityLimit = complexityLimit;
+  public PostQueriesJson(final UsageLogger usageLogger) {
     this.usageLogger = usageLogger;
   }
 

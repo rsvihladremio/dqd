@@ -11,21 +11,10 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.queriesjson.reporters;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.dremio.support.diagnostics.queriesjson.Query;
 
-import org.junit.jupiter.api.Test;
-
-public class SummaryQueryTest {
-  @Test
-  public void testSummaryTest() {
-    SummaryQuery summary = new SummaryQuery();
-    summary.setQueryText("my query");
-    summary.setFinishEpochMillis(100L);
-    summary.setStartEpochMillis(99L);
-    assertThat(summary.getQueryText()).isEqualTo("my query");
-    assertThat(summary.getStartEpochMillis()).isEqualTo(99L);
-    assertThat(summary.getFinishEpochMillis()).isEqualTo(100L);
-  }
+public interface QueryReporter {
+  void parseRow(Query q);
 }

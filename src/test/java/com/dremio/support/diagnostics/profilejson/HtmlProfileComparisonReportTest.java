@@ -34,12 +34,14 @@ class HtmlProfileComparisonReportTest {
     // the content doesn't actually matter, we can spin up an empty report
     Path path = Paths.get("");
     assertThat(
-            new HtmlProfileComparisonReport(
-                    false,
-                    parsed1,
-                    parsed2,
-                    new ProfileJsonComparisonTextReport(new ArrayList<>(), path, path))
-                .getTitle())
+        new HtmlProfileComparisonReport(
+            false,
+            path.toString(),
+            path.toString(),
+            parsed1,
+            parsed2,
+            new ArrayList<>())
+            .getTitle())
         .isEqualTo("Profile.json Analysis");
   }
 
@@ -48,17 +50,19 @@ class HtmlProfileComparisonReportTest {
     final ProfileJSONParser parser = new ProfileJSONParser();
     final ProfileJSON profile1 = parser.parseFile(FileTestHelpers.getTestProfile1().stream());
     final ProfileJSON profile2 = parser.parseFile(FileTestHelpers.getTestProfile2().stream());
-    final ProfileJsonComparisonTextReport consoleReport =
-        new ProfileJsonComparisonTextReport(
-            new ArrayList<>(),
-            FileTestHelpers.getTestProfile1().filePath(),
-            FileTestHelpers.getTestProfile2().filePath());
 
+    final String file1 = FileTestHelpers.getTestProfile1().filePath().toString();
+    final String file2 = FileTestHelpers.getTestProfile2().filePath().toString();
     assertThatThrownBy(
-            () -> new HtmlProfileComparisonReport(false, null, profile2, consoleReport).getText())
+        () -> new HtmlProfileComparisonReport(
+            false,
+            file1,
+            file2,
+            null,
+            profile2, new ArrayList<>()).getText())
         .hasMessageContaining("profile1 cannot be null");
     assertThatThrownBy(
-            () -> new HtmlProfileComparisonReport(false, profile1, null, consoleReport).getText())
+        () -> new HtmlProfileComparisonReport(false, file1, file2, profile1, null, new ArrayList<>()).getText())
         .hasMessageContaining("profile2 cannot be null");
   }
 
@@ -67,8 +71,10 @@ class HtmlProfileComparisonReportTest {
     final ProfileJSONParser parser = new ProfileJSONParser();
     ProfileJSON profile1 = parser.parseFile(FileTestHelpers.getTestProfile1().stream());
     ProfileJSON profile2 = parser.parseFile(FileTestHelpers.getTestProfile2().stream());
+    final String file1 = FileTestHelpers.getTestProfile1().filePath().toString();
+    final String file2 = FileTestHelpers.getTestProfile2().filePath().toString();
     assertThatThrownBy(
-            () -> new HtmlProfileComparisonReport(false, profile1, profile2, null).getText())
+        () -> new HtmlProfileComparisonReport(false, file1, file2, profile1, profile2, null).getText())
         .hasMessageContaining("the console report cannot be null, this is a critical bug");
   }
 }

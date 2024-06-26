@@ -13,7 +13,9 @@
  */
 package com.dremio.support.diagnostics.repro;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -39,17 +41,17 @@ class VdsSqlTest {
 
     @Test
     void testTableName() {
-      assertThat(vdsSql.getTableName()).isEqualTo(tableName);
+      assertEquals(vdsSql.getTableName(),tableName);
     }
 
     @Test
     void testSql() {
-      assertThat(vdsSql.getSql()).isEqualTo(sql);
+      assertEquals(vdsSql.getSql(),sql);
     }
 
     @Test
     void testTableReferences() {
-      assertThat(vdsSql.getTableReferences()).isEqualTo(tableReferences);
+      assertEquals(vdsSql.getTableReferences(),tableReferences);
     }
   }
 
@@ -72,66 +74,65 @@ class VdsSqlTest {
 
     @Test
     void testEquals() {
-      assertThat(vdsSql1).isEqualTo(vdsSql2);
+      assertEquals(vdsSql1,vdsSql2);
     }
 
     @Test
     void testEqualityTrue() {
-      assertThat(vdsSql1.equals(vdsSql2)).isTrue();
+      assertTrue(vdsSql1.equals(vdsSql2));
     }
 
     @Test
     void testSameReferenceTrue() {
-      assertThat(vdsSql1.equals(vdsSql1)).isTrue();
+      assertTrue(vdsSql1.equals(vdsSql1));
     }
 
     @Test
     void testNullCompareFalse() {
       VdsSql nullVds = null;
-      assertThat(vdsSql1.equals(nullVds)).isFalse();
+      assertFalse(vdsSql1.equals(nullVds));
     }
 
     @SuppressWarnings("unlikely-arg-type")
     @Test
     void testWrongTypeIsFalse() {
-      assertThat(vdsSql1.equals(1L)).isFalse();
+      assertFalse(vdsSql1.equals(1L));
     }
 
     @Test
     void testEmptyStringsDontMatch() {
       VdsSql vdsSql3 = new VdsSql("", "", new String[] {});
-      assertThat(vdsSql1.equals(vdsSql3)).isFalse();
+      assertFalse(vdsSql1.equals(vdsSql3));
     }
 
     @Test
     void testTableNameMatchesButNothingElse() {
       VdsSql vdsSql4 = new VdsSql(tableName, "", new String[] {});
-      assertThat(vdsSql1.equals(vdsSql4)).isFalse();
+      assertFalse(vdsSql1.equals(vdsSql4));
     }
 
     @Test
     void testSqlMatchesButNothingElse() {
       VdsSql vdsSql5 = new VdsSql("", sql, new String[] {});
-      assertThat(vdsSql1.equals(vdsSql5)).isFalse();
+      assertFalse(vdsSql1.equals(vdsSql5));
     }
 
     @Test
     void testTableFieldDoesntMatch() {
       VdsSql vdsSql6 = new VdsSql(tableName, sql, new String[] {"abc"});
-      assertThat(vdsSql1.equals(vdsSql6)).isFalse();
+      assertFalse(vdsSql1.equals(vdsSql6));
     }
   }
 
   @Test
   void testHashCode() {
     VdsSql vds = new VdsSql("test", "select * from foo", new String[] {"abc"});
-    assertThat(vds.hashCode()).isEqualTo(-474074616L);
+    assertEquals(vds.hashCode(),-474074616L);
   }
 
   @Test
   void testString() {
     VdsSql vds = new VdsSql("test", "select * from foo", new String[] {"test"});
-    assertThat(vds.toString())
-        .isEqualTo("VdsSql{tableName='test', sql='select * from foo', tableReferences=[test]}");
+    assertEquals(vds.toString(), "VdsSql{tableName='test', sql='select * from foo', tableReferences=[test]}");
   }
 }

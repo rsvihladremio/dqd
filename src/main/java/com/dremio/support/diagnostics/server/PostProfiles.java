@@ -16,7 +16,6 @@ package com.dremio.support.diagnostics.server;
 import com.dremio.support.diagnostics.profilejson.Difference;
 import com.dremio.support.diagnostics.profilejson.HtmlProfileComparisonReport;
 import com.dremio.support.diagnostics.profilejson.ProfileDifferenceReport;
-import com.dremio.support.diagnostics.profilejson.ProfileJsonComparisonTextReport;
 import com.dremio.support.diagnostics.repro.ArgSetup;
 import com.dremio.support.diagnostics.shared.PathAndStream;
 import com.dremio.support.diagnostics.shared.ProfileProvider;
@@ -86,10 +85,11 @@ public class PostProfiles implements Handler {
       HtmlProfileComparisonReport htmlProfileComparisonReport =
           new HtmlProfileComparisonReport(
               showConvertToRel,
+            profile1.filename().toString(),
+            profile2.filename().toString(),
               profile1Parsed,
               profile2Parsed,
-              new ProfileJsonComparisonTextReport(
-                  diffs, Paths.get(profile1.filename()), Paths.get(profile2.filename())));
+              diffs);
       String report = htmlProfileComparisonReport.getText();
       ctx.html(report);
     } catch (Exception ex) {

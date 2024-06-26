@@ -81,7 +81,6 @@ public class GraphWriter {
       case "LogicalFilter":
         {
           LogicalFilter logicalFilter = (LogicalFilter) node;
-          // TODO: maybe split up all conditions into separate lines?
           String condition = logicalFilter.getCondition();
           Map<String, String> customData = new HashMap<>();
           customData.put("condition", condition);

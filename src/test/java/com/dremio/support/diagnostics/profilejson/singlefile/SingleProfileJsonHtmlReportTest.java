@@ -56,8 +56,6 @@ class SingleProfileJsonHtmlReportTest {
     assertThat(text)
         .contains(
             "<td>21.6.0-202209301921120677-ad35777b</td>"); // dremio version (client and server are
-    // same
-    // in this profile.. TODO fix);
     assertThat(text).contains("SELECT \"SF weather 2018-2019.csv\".\"DATE\" AS"); // part of query
     assertThat(text).contains("\"DATE\", ELEVATION, MAX(TAVG) AS Maximum_TAVG,");
     assertThat(text).contains("MIN(TMIN) AS Minimum_TMIN, MAX(TMAX) AS");

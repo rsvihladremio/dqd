@@ -13,7 +13,9 @@
  */
 package com.dremio.support.diagnostics.repro;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -36,13 +38,14 @@ class PdsSqlTest {
 
     @Test
     void testTableName() {
-      assertThat(pdsSql.getTableName()).isEqualTo(tableName);
+      assertEquals(pdsSql.getTableName(),tableName);
     }
 
     @Test
     void testSql() {
-      assertThat(pdsSql.getSql()).isEqualTo(sql);
+      assertEquals(pdsSql.getSql(),sql);
     }
+
   }
 
   @Nested
@@ -63,53 +66,53 @@ class PdsSqlTest {
 
     @Test
     void testEqualsTheSameFieldsForTwoInstances() {
-      assertThat(pdsSql1).isEqualTo(pdsSql2);
+      assertEquals(pdsSql1,pdsSql2);
     }
 
     @Test
     void testEqualsMethod() {
-      assertThat(pdsSql1.equals(pdsSql2)).isTrue();
+      assertTrue(pdsSql1.equals(pdsSql2));
     }
 
     @Test
     void testEqualsSameInstanceMethod() {
-      assertThat(pdsSql1.equals(pdsSql1)).isTrue();
+      assertTrue(pdsSql1.equals(pdsSql1));
     }
 
     @Test
     void testEqualsNullObjectIsFalse() {
       PdsSql nullSql = null;
-      assertThat(pdsSql1.equals(nullSql)).isFalse();
+      assertFalse(pdsSql1.equals(nullSql));
     }
 
     @Test
     void testEmptyFields() {
       final PdsSql pdsSql3 = new PdsSql("", "");
-      assertThat(pdsSql1.equals(pdsSql3)).isFalse();
+      assertFalse(pdsSql1.equals(pdsSql3));
     }
 
     @Test
     void testSameTableButEmptySql() {
       final PdsSql pdsSql4 = new PdsSql(tableName, "");
-      assertThat(pdsSql1.equals(pdsSql4)).isFalse();
+      assertFalse(pdsSql1.equals(pdsSql4));
     }
 
     @Test
     void testSameSqlButEmptyTable() {
       final PdsSql pdsSql5 = new PdsSql("", sql);
-      assertThat(pdsSql1.equals(pdsSql5)).isFalse();
+      assertFalse(pdsSql1.equals(pdsSql5));
     }
   }
 
   @Test
   void testHashCode() {
     final PdsSql pds = new PdsSql("test", "select * from foo");
-    assertThat(pds.hashCode()).isEqualTo(-292390503L);
+    assertEquals(pds.hashCode(),-292390503L);
   }
 
   @Test
   void testString() {
     final PdsSql pds = new PdsSql("test", "select * from foo");
-    assertThat(pds.toString()).isEqualTo("PdsSql{tableName='test', sql='select * from foo}");
+    assertEquals(pds.toString(),"PdsSql{tableName='test', sql='select * from foo}");
   }
 }

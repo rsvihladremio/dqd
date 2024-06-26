@@ -14,7 +14,8 @@
 package com.dremio.support.diagnostics.simple;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErrAndOut;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dremio.support.diagnostics.App;
 import com.dremio.support.diagnostics.FileTestHelpers;
@@ -22,7 +23,6 @@ import com.dremio.support.diagnostics.profilejson.CoreOperatorType;
 import com.dremio.support.diagnostics.repro.ArgSetup;
 import java.io.IOException;
 import java.util.Locale;
-import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
@@ -31,18 +31,18 @@ public class ProfileJSONSimplifiedTest {
 
   @Test
   void testZeroDurationNanosToSeconds() {
-    var nearZeroOffset = Offset.offset(0.0000001);
+    var nearZeroOffset = 0.0000001;
     var mostlyEmpty =
         new ProfileJSONSimplified.OperatorRow(
             "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, CoreOperatorType.SCREEN, "");
-    assertThat(mostlyEmpty.processNanos()).isEqualTo(0);
-    assertThat(mostlyEmpty.processSeconds()).isEqualTo(0.0, nearZeroOffset);
-    assertThat(mostlyEmpty.waitNanos()).isEqualTo(0);
-    assertThat(mostlyEmpty.waitSeconds()).isEqualTo(0.0, nearZeroOffset);
-    assertThat(mostlyEmpty.setupNanos()).isEqualTo(0);
-    assertThat(mostlyEmpty.setupSeconds()).isEqualTo(0.0, nearZeroOffset);
-    assertThat(mostlyEmpty.totalDurationNanos()).isEqualTo(0);
-    assertThat(mostlyEmpty.totalDurationSeconds()).isEqualTo(0.0, nearZeroOffset);
+    assertEquals(mostlyEmpty.processNanos(), 0);
+    assertEquals(mostlyEmpty.processSeconds(), 0.0, nearZeroOffset);
+    assertEquals(mostlyEmpty.waitNanos(), 0);
+    assertEquals(mostlyEmpty.waitSeconds(), 0.0, nearZeroOffset);
+    assertEquals(mostlyEmpty.setupNanos(), 0);
+    assertEquals(mostlyEmpty.setupSeconds(), 0.0, nearZeroOffset);
+    assertEquals(mostlyEmpty.totalDurationNanos(), 0);
+    assertEquals(mostlyEmpty.totalDurationSeconds(), 0.0, nearZeroOffset);
   }
 
   @Nested
@@ -55,47 +55,45 @@ public class ProfileJSONSimplifiedTest {
       var singleProfile = FileTestHelpers.getTestProfile1();
       var profile = ArgSetup.getProfileProvider(singleProfile);
       var summary = summarize.singleProfile(profile.getProfile());
-      assertThat(summary.dremioVersion()).isEqualTo("21.6.0-202209301921120677-ad35777b");
-      assertThat(summary.user()).isEqualTo("rssvihla");
-      assertThat(summary.queryPhase()).isEqualTo("COMPLETED");
-      assertThat(summary.endEpochMillis()).isEqualTo(1665659579063L);
-      assertThat(summary.startEpochMillis()).isEqualTo(1665659576641L);
-      assertThat(summary.operatorRows().size()).isEqualTo(9);
+      assertEquals(summary.dremioVersion(), "21.6.0-202209301921120677-ad35777b");
+      assertEquals(summary.user(), "rssvihla");
+      assertEquals(summary.queryPhase(), "COMPLETED");
+      assertEquals(summary.endEpochMillis(), 1665659579063L);
+      assertEquals(summary.startEpochMillis(), 1665659576641L);
+      assertEquals(summary.operatorRows().size(), 9);
       final ProfileJSONSimplified.OperatorRow[] rows =
           summary.operatorRows().toArray(new ProfileJSONSimplified.OperatorRow[0]);
       var first = rows[0];
-      assertThat(first.name()).isEqualTo("TEXT_SUB_SCAN 00-00-08");
-      assertThat(first.batches()).isEqualTo(2);
-      assertThat(first.records()).isEqualTo(485);
-      assertThat(first.peakMemoryAllocatedBytes()).isEqualTo(1180416L);
-      assertThat(first.setupNanos()).isEqualTo(1019591L);
-      assertThat(first.setupSeconds()).isEqualTo(0.001, Offset.offset(0.001));
-      assertThat(first.waitSeconds()).isEqualTo(0.877, Offset.offset(0.001));
-      assertThat(first.processSeconds()).isEqualTo(0.000583, Offset.offset(0.001));
-      assertThat(first.totalDurationSeconds()).isEqualTo(0.878, Offset.offset(0.001));
-      assertThat(first.coreOperatorType()).isEqualTo(CoreOperatorType.TEXT_SUB_SCAN);
-      assertThat(first.hostName()).isEqualTo("laptop-jkcfofo7.home");
+      assertEquals(first.name(), "TEXT_SUB_SCAN 00-00-08");
+      assertEquals(first.batches(), 2);
+      assertEquals(first.records(), 485);
+      assertEquals(first.peakMemoryAllocatedBytes(), 1180416L);
+      assertEquals(first.setupNanos(), 1019591L);
+      assertEquals(first.setupSeconds(), 0.001, 0.001);
+      assertEquals(first.waitSeconds(), 0.877, 0.001);
+      assertEquals(first.processSeconds(), 0.000583, 0.001);
+      assertEquals(first.totalDurationSeconds(), 0.878, 0.001);
+      assertEquals(first.coreOperatorType(), CoreOperatorType.TEXT_SUB_SCAN);
+      assertEquals(first.hostName(), "laptop-jkcfofo7.home");
 
       var last = rows[8];
-      assertThat(last.name()).isEqualTo("SCREEN 00-00-00");
-      assertThat(last.batches()).isEqualTo(1);
-      assertThat(last.records()).isEqualTo(1);
-      assertThat(last.setupNanos()).isEqualTo(2680L);
-      assertThat(last.setupSeconds()).isEqualTo(0.000, Offset.offset(0.001));
-      assertThat(last.waitSeconds()).isEqualTo(0.000, Offset.offset(0.001));
-      assertThat(last.processSeconds()).isEqualTo(0.000128, Offset.offset(0.0001));
-      assertThat(last.totalDurationSeconds()).isEqualTo(0.00025, Offset.offset(0.0001));
-      assertThat(last.coreOperatorType()).isEqualTo(CoreOperatorType.SCREEN);
+      assertEquals(last.name(), "SCREEN 00-00-00");
+      assertEquals(last.batches(), 1);
+      assertEquals(last.records(), 1);
+      assertEquals(last.setupNanos(), 2680L);
+      assertEquals(last.setupSeconds(), 0.000, 0.001);
+      assertEquals(last.waitSeconds(), 0.000, 0.001);
+      assertEquals(last.processSeconds(), 0.000128, 0.0001);
+      assertEquals(last.totalDurationSeconds(), 0.00025, 0.0001);
+      assertEquals(last.coreOperatorType(), CoreOperatorType.SCREEN);
 
-      assertThat(last.hostName()).isEqualTo("laptop-jkcfofo7.home");
-      assertThat(last.peakMemoryAllocatedBytes()).isEqualTo(1000000L);
-      assertThat(summary.findings().size()).isEqualTo(1);
-      assertThat(summary.totalPhases()).isEqualTo(1);
+      assertEquals(last.hostName(), "laptop-jkcfofo7.home");
+      assertEquals(last.peakMemoryAllocatedBytes(), 1000000L);
+      assertEquals(summary.findings().size(), 1);
+      assertEquals(summary.totalPhases(), 1);
 
       var finding = summary.findings().stream().findFirst();
-      assertThat(finding.get())
-          .isEqualTo(
-              "97.36 % of the query time is taken up by the following phases [(METADATA_RETRIEVAL"
+      assertEquals(finding.get(), "97.36 % of the query time is taken up by the following phases [(METADATA_RETRIEVAL"
                   + " 60.12%), (RUNNING 37.24%)]");
     }
 
@@ -103,14 +101,14 @@ public class ProfileJSONSimplifiedTest {
     public void TestSingleProfileIsNull() {
       var summarize = new ProfileJSONSimplified.Summarize();
       var summary = summarize.singleProfile(null);
-      assertThat(summary.dremioVersion()).isEqualTo("unknown");
-      assertThat(summary.user()).isEqualTo("unknown user");
-      assertThat(summary.queryPhase()).isEqualTo("UNKNOWN PHASE");
-      assertThat(summary.endEpochMillis()).isEqualTo(0);
-      assertThat(summary.startEpochMillis()).isEqualTo(0);
-      assertThat(summary.operatorRows().size()).isEqualTo(0);
-      assertThat(summary.findings().size()).isEqualTo(0);
-      assertThat(summary.totalPhases()).isEqualTo(0);
+      assertEquals(summary.dremioVersion(), "unknown");
+      assertEquals(summary.user(), "unknown user");
+      assertEquals(summary.queryPhase(), "UNKNOWN PHASE");
+      assertEquals(summary.endEpochMillis(), 0);
+      assertEquals(summary.startEpochMillis(), 0);
+      assertEquals(summary.operatorRows().size(), 0);
+      assertEquals(summary.findings().size(), 0);
+      assertEquals(summary.totalPhases(), 0);
     }
 
     @Test
@@ -118,23 +116,23 @@ public class ProfileJSONSimplifiedTest {
       var summarize = new ProfileJSONSimplified.Summarize();
       var summaryCompare = summarize.compareProfiles(null, null);
       var summary1 = summaryCompare.summary1();
-      assertThat(summary1.dremioVersion()).isEqualTo("unknown");
-      assertThat(summary1.user()).isEqualTo("unknown user");
-      assertThat(summary1.queryPhase()).isEqualTo("UNKNOWN PHASE");
-      assertThat(summary1.endEpochMillis()).isEqualTo(0);
-      assertThat(summary1.startEpochMillis()).isEqualTo(0);
-      assertThat(summary1.operatorRows().size()).isEqualTo(0);
-      assertThat(summary1.findings().size()).isEqualTo(0);
-      assertThat(summary1.totalPhases()).isEqualTo(0);
+      assertEquals(summary1.dremioVersion(), "unknown");
+      assertEquals(summary1.user(), "unknown user");
+      assertEquals(summary1.queryPhase(), "UNKNOWN PHASE");
+      assertEquals(summary1.endEpochMillis(), 0);
+      assertEquals(summary1.startEpochMillis(), 0);
+      assertEquals(summary1.operatorRows().size(), 0);
+      assertEquals(summary1.findings().size(), 0);
+      assertEquals(summary1.totalPhases(), 0);
       var summary2 = summaryCompare.summary1();
-      assertThat(summary2.dremioVersion()).isEqualTo("unknown");
-      assertThat(summary2.user()).isEqualTo("unknown user");
-      assertThat(summary2.queryPhase()).isEqualTo("UNKNOWN PHASE");
-      assertThat(summary2.endEpochMillis()).isEqualTo(0);
-      assertThat(summary2.startEpochMillis()).isEqualTo(0);
-      assertThat(summary2.operatorRows().size()).isEqualTo(0);
-      assertThat(summary2.findings().size()).isEqualTo(0);
-      assertThat(summary2.totalPhases()).isEqualTo(0);
+      assertEquals(summary2.dremioVersion(), "unknown");
+      assertEquals(summary2.user(), "unknown user");
+      assertEquals(summary2.queryPhase(), "UNKNOWN PHASE");
+      assertEquals(summary2.endEpochMillis(), 0);
+      assertEquals(summary2.startEpochMillis(), 0);
+      assertEquals(summary2.operatorRows().size(), 0);
+      assertEquals(summary2.findings().size(), 0);
+      assertEquals(summary2.totalPhases(), 0);
     }
   }
 
@@ -153,7 +151,7 @@ public class ProfileJSONSimplifiedTest {
                     FileTestHelpers.getTestProfile1().filePath().toAbsolutePath().toString());
               });
 
-      assertThat(text)
+      assertTrue(text
           .contains(
               """
                   <thead>
@@ -279,7 +277,7 @@ public class ProfileJSONSimplifiedTest {
                   <td>laptop-jkcfofo7.home</td>
                   </tr>
                   </tbody>
-                  </table>""");
+                  </table>"""));
     }
   }
 }

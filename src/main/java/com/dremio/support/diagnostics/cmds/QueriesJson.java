@@ -147,14 +147,12 @@ public class QueriesJson implements Callable<Integer> {
           for (Extraction extraction : result) {
             streams.addAll(extraction.getPathAndStreams());
           }
-
         } else {
           streams.add(pathAndStream);
         }
       }
       try (var outputStream = Files.newOutputStream(outputFile.toPath())) {
         final Reporter reporter = new StreamWriterReporter(outputStream);
-
         new Exec()
             .run(
                 streams.stream().toList(),

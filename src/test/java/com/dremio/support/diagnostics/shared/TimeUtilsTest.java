@@ -11,25 +11,22 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.shared;
 
-public class DataPoints {
-  private long[] timestamps;
-  private long[] values;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-  public long[] getTimestamps() {
-    return timestamps;
+import org.junit.jupiter.api.Test;
+
+public class TimeUtilsTest {
+  @Test
+  public void testTruncateToSecondWithZero() {
+    assertEquals(TimeUtils.truncateEpochToSecond(0), 0L);
   }
 
-  public void setTimestamps(long[] timestamps) {
-    this.timestamps = timestamps;
-  }
-
-  public long[] getValues() {
-    return values;
-  }
-
-  public void setValues(long[] values) {
-    this.values = values;
+  @Test
+  public void testTruncateToSecond() {
+    assertEquals(TimeUtils.truncateEpochToSecond(1500), 1000L);
+    assertEquals(TimeUtils.truncateEpochToSecond(1000), 1000L);
+    assertEquals(TimeUtils.truncateEpochToSecond(1999), 1000L);
   }
 }

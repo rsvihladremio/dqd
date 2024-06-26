@@ -26,37 +26,16 @@ import picocli.CommandLine.Command;
 public class Server implements Runnable {
 
   @CommandLine.Option(
-      names = {"-c", "--complexity-limit"},
-      defaultValue = "1000000000",
-      description =
-          "The complexity limit guards one from running out of heap or generating a graph that is"
-              + " unreadable when generating reports. This is the number of queries times the"
-              + " number of 1 second buckets and is a proxy for how expensive the calculation will"
-              + " be. The default should be fine for most modern hardware but if you would like you"
-              + " can override it here",
-      showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-  private Long complexityLimit;
-
-  @CommandLine.Option(
       names = {"-p", "--port"},
       defaultValue = "8080",
       description = "port to run the server on",
       showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
   private Integer port;
 
-  @CommandLine.Option(
-      names = {"-f", "--fallback-resolution-seconds"},
-      defaultValue = "3600",
-      description =
-          "used with complexity limit to set the granularity of graphs from 1 second to this"
-              + " number.",
-      showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-  private Long fallbackResolutionSeconds;
-
   @Override
   public void run() {
     try {
-      DQDWebServer.start(complexityLimit, port);
+      DQDWebServer.start(port);
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
