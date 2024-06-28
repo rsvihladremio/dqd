@@ -70,9 +70,9 @@ public class MemoryUsed implements ProfileJSONReport {
       final String key = entry.getKey();
       final Long value = entry.getValue();
 
-      final HtmlTableDataColumn<String, Long> first = new HtmlTableDataColumn<>(key, null);
+      final HtmlTableDataColumn<String, Long> first = new HtmlTableDataColumn<>(key, null, false);
       final HtmlTableDataColumn<String, Long> second =
-          new HtmlTableDataColumn<>(Human.getHumanBytes1024(value), value);
+          new HtmlTableDataColumn<>(Human.getHumanBytes1024(value), value, false);
       final List<HtmlTableDataColumn<String, Long>> row = Arrays.asList(first, second);
       rows.add(row);
     }

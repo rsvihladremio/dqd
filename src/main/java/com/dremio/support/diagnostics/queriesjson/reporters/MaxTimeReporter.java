@@ -22,32 +22,37 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MaxTimeReporter implements QueryReporter {
   private final Map<Long, Long> pending = new HashMap<>();
+
   public Map<Long, Long> getPending() {
     return pending;
   }
 
-  private final Map<Long, Long> attempts = new HashMap<>();
-  public Map<Long, Long> getAttempts() {
-    return attempts;
+  private final Map<Long, Long> metadata = new HashMap<>();
+
+  public Map<Long, Long> getMetadata() {
+    return metadata;
   }
 
   private final Map<Long, Long> queued = new HashMap<>();
+
   public Map<Long, Long> getQueued() {
     return queued;
   }
 
   private final Map<Long, Long> planning = new HashMap<>();
+
   public Map<Long, Long> getPlanning() {
     return planning;
   }
 
   private final Map<Long, Long> maxPool = new HashMap<>();
-  public Map<Long, Long> maxPool() {
+
+  public Map<Long, Long> getMaxPool() {
     return maxPool;
   }
 
   private final Lock pendingLock = new ReentrantLock();
-  private final Lock attemptsLock = new ReentrantLock();
+  private final Lock metadataLock = new ReentrantLock();
   private final Lock queuedLock = new ReentrantLock();
   private final Lock planningLock = new ReentrantLock();
   private final Lock maxPoolLock = new ReentrantLock();
@@ -80,9 +85,9 @@ public class MaxTimeReporter implements QueryReporter {
     // counting and
     // therefore the finish will not added to the maps
     long finish = TimeUtils.truncateEpoch(q.getFinish(), this.window) + this.window;
-    while (start != finish) {
+    while (start < finish) {
       setMax(q.getPendingTime(), start, pending, pendingLock);
-      setMax(q.getAttemptCount(), start, attempts, attemptsLock);
+      setMax(q.getNormalizedMetadataRetrieval(), start, metadata, metadataLock);
       setMax(q.getQueuedTime(), start, queued, queuedLock);
       setMax(q.getPlanningTime(), start, planning, planningLock);
       setMax(q.getPoolWaitTime(), start, maxPool, maxPoolLock);

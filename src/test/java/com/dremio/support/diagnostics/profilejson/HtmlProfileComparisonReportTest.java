@@ -34,14 +34,9 @@ class HtmlProfileComparisonReportTest {
     // the content doesn't actually matter, we can spin up an empty report
     Path path = Paths.get("");
     assertThat(
-        new HtmlProfileComparisonReport(
-            false,
-            path.toString(),
-            path.toString(),
-            parsed1,
-            parsed2,
-            new ArrayList<>())
-            .getTitle())
+            new HtmlProfileComparisonReport(
+                    false, path.toString(), path.toString(), parsed1, parsed2, new ArrayList<>())
+                .getTitle())
         .isEqualTo("Profile.json Analysis");
   }
 
@@ -54,15 +49,16 @@ class HtmlProfileComparisonReportTest {
     final String file1 = FileTestHelpers.getTestProfile1().filePath().toString();
     final String file2 = FileTestHelpers.getTestProfile2().filePath().toString();
     assertThatThrownBy(
-        () -> new HtmlProfileComparisonReport(
-            false,
-            file1,
-            file2,
-            null,
-            profile2, new ArrayList<>()).getText())
+            () ->
+                new HtmlProfileComparisonReport(
+                        false, file1, file2, null, profile2, new ArrayList<>())
+                    .getText())
         .hasMessageContaining("profile1 cannot be null");
     assertThatThrownBy(
-        () -> new HtmlProfileComparisonReport(false, file1, file2, profile1, null, new ArrayList<>()).getText())
+            () ->
+                new HtmlProfileComparisonReport(
+                        false, file1, file2, profile1, null, new ArrayList<>())
+                    .getText())
         .hasMessageContaining("profile2 cannot be null");
   }
 
@@ -74,7 +70,9 @@ class HtmlProfileComparisonReportTest {
     final String file1 = FileTestHelpers.getTestProfile1().filePath().toString();
     final String file2 = FileTestHelpers.getTestProfile2().filePath().toString();
     assertThatThrownBy(
-        () -> new HtmlProfileComparisonReport(false, file1, file2, profile1, profile2, null).getText())
-        .hasMessageContaining("the console report cannot be null, this is a critical bug");
+            () ->
+                new HtmlProfileComparisonReport(false, file1, file2, profile1, profile2, null)
+                    .getText())
+        .hasMessageContaining("the diffs cannot be null, this is a critical bug");
   }
 }

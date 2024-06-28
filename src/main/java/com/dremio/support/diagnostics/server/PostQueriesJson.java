@@ -13,21 +13,33 @@
  */
 package com.dremio.support.diagnostics.server;
 
-import static com.dremio.support.diagnostics.shared.zip.ArchiveDetection.isArchive;
-
 import com.dremio.support.diagnostics.queriesjson.QueriesJsonHtmlReport;
-import com.dremio.support.diagnostics.shared.PathAndStream;
+import com.dremio.support.diagnostics.queriesjson.ReadArchive;
+import com.dremio.support.diagnostics.queriesjson.filters.DateRangeQueryFilter;
+import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueueReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentSchemaOpsReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MaxCPUQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MaxMemoryQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MaxTimeReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MemoryAllocatedReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.QueryReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.RequestCounterReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.RequestsByQueueReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.SlowestMetadataQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.SlowestPlanningQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.StartFinishReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.TotalQueriesReporter;
 import com.dremio.support.diagnostics.shared.StreamWriterReporter;
 import com.dremio.support.diagnostics.shared.UsageEntry;
 import com.dremio.support.diagnostics.shared.UsageLogger;
-import com.dremio.support.diagnostics.shared.zip.Extraction;
-import com.dremio.support.diagnostics.shared.zip.UnzipperImpl;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -35,6 +47,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PostQueriesJson implements Handler {
@@ -54,48 +67,23 @@ public class PostQueriesJson implements Handler {
     }
     var file = files.get(0);
     var fields = ctx.formParamMap();
-    final List<Extraction> extractions = new ArrayList<>();
     try (InputStream is = file.content()) {
-      final List<PathAndStream> pathAndStreams = new ArrayList<>();
-      PathAndStream inputFile = new PathAndStream(Paths.get(file.filename()), is);
+
       try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-        if (isArchive(file.filename())) {
-          extractions.addAll(
-              new UnzipperImpl()
-                  .unzipAllFiles(
-                      inputFile,
-                      x -> {
-                        final var base = Paths.get(x).getFileName().toString();
-                        logger.info(() -> "is a json file %b".formatted(base.contains(".json")));
-                        logger.info(
-                            () -> "starts with queries %b".formatted(base.startsWith("queries")));
-                        return base.contains(".json") && base.startsWith("queries");
-                      }));
-          for (final Extraction e : extractions) {
-            pathAndStreams.addAll(e.getPathAndStreams());
-          }
-          logger.info(
-              () -> String.format("zip file turning into %d query files", pathAndStreams.size()));
-        } else {
-          pathAndStreams.add(inputFile);
-        }
         final StreamWriterReporter reporter = new StreamWriterReporter(baos);
-        var fallbackBucketSecondsString = "3600";
-        final List<String> fallbackBucketSecondsStringArray =
-            fields.getOrDefault("fallback_bucket_seconds", Arrays.asList("3600"));
-        if (fallbackBucketSecondsStringArray.size() == 1) {
-          fallbackBucketSecondsString = fallbackBucketSecondsStringArray.get(0);
+        var windowStr = "86400000";
+        final List<String> windowArray = fields.getOrDefault("window", Arrays.asList("86400000"));
+        if (windowArray.size() == 1) {
+          windowStr = windowArray.get(0);
         }
-        int fallbackBucketSecondsRaw;
+        int windowRaw;
         try {
-          fallbackBucketSecondsRaw = Integer.parseInt(fallbackBucketSecondsString);
+          windowRaw = Integer.parseInt(windowStr);
         } catch (NumberFormatException ex) {
-          fallbackBucketSecondsRaw = 3600;
-          logger.warning(
-              "unable to parse number %s due to error %s"
-                  .formatted(fallbackBucketSecondsString, ex));
+          windowRaw = 86400000;
+          logger.warning("unable to parse number %s due to error %s".formatted(windowStr, ex));
         }
-        final int fallbackBucketSeconds = fallbackBucketSecondsRaw;
+        final int window = windowRaw;
         final ZoneId z = ZoneId.of("UTC");
 
         final int thisYear = ZonedDateTime.now(z).getYear();
@@ -135,12 +123,71 @@ public class PostQueriesJson implements Handler {
         } else {
           limit = 5;
         }
+        var reporters = new ArrayList<QueryReporter>();
+        final ConcurrentQueriesReporter concurrentQueriesReporter =
+            new ConcurrentQueriesReporter(window);
+        reporters.add(concurrentQueriesReporter);
+        final ConcurrentQueueReporter concurrentQueueReporter = new ConcurrentQueueReporter(window);
+        reporters.add(concurrentQueueReporter);
+        final ConcurrentSchemaOpsReporter concurrentSchemaOpsReporter =
+            new ConcurrentSchemaOpsReporter(window);
+        reporters.add(concurrentSchemaOpsReporter);
+        final MaxMemoryQueriesReporter maxMemoryQueriesReporter =
+            new MaxMemoryQueriesReporter(limit);
+        reporters.add(maxMemoryQueriesReporter);
+        final MaxCPUQueriesReporter maxCPUQueriesReporter = new MaxCPUQueriesReporter(limit);
+        reporters.add(maxCPUQueriesReporter);
+        final MaxTimeReporter maxTimeReporter = new MaxTimeReporter(window);
+        reporters.add(maxTimeReporter);
+        final MemoryAllocatedReporter memoryAllocatedReporter = new MemoryAllocatedReporter(window);
+        reporters.add(memoryAllocatedReporter);
+        final RequestCounterReporter requestCounterReporter = new RequestCounterReporter();
+        reporters.add(requestCounterReporter);
+        final RequestsByQueueReporter requestsByQueueReporter = new RequestsByQueueReporter();
+        reporters.add(requestsByQueueReporter);
+        final SlowestMetadataQueriesReporter slowestMetadataQueriesReporter =
+            new SlowestMetadataQueriesReporter(limit);
+        reporters.add(slowestMetadataQueriesReporter);
+        final SlowestPlanningQueriesReporter slowestPlanningQueriesReporter =
+            new SlowestPlanningQueriesReporter(limit);
+        reporters.add(slowestPlanningQueriesReporter);
+        final StartFinishReporter startFinishReporter = new StartFinishReporter();
+        reporters.add(startFinishReporter);
+        final TotalQueriesReporter totalQueriesReporter = new TotalQueriesReporter();
+        reporters.add(totalQueriesReporter);
+
+        var filter = new DateRangeQueryFilter(start.toEpochMilli(), end.toEpochMilli());
+        var archive = new ReadArchive(filter);
+        var cpus = Runtime.getRuntime().availableProcessors() / 2;
+        var tmpFile = Files.createTempFile("dqd", "tmp");
+        try (FileOutputStream os = new FileOutputStream(tmpFile.toFile())) {
+          var buff = new byte[65536];
+          IOUtils.copyLarge(is, os, buff);
+        }
+        if (file.filename().endsWith(".tgz") || file.filename().endsWith(".tar.gz")) {
+          archive.readTarGz(tmpFile.toString(), reporters, cpus);
+        } else if (file.filename().endsWith(".zip")) {
+          archive.readZip(tmpFile.toString(), reporters, cpus);
+        } else {
+          throw new RuntimeException("unknown extension for file " + file.filename().toString());
+        }
         new com.dremio.support.diagnostics.queriesjson.Exec()
             .run(
-                pathAndStreams,
-                (streams) ->
-                    new QueriesJsonHtmlReport(
-                        limit, streams, complexityLimit, fallbackBucketSeconds, start, end),
+                new QueriesJsonHtmlReport(
+                    window,
+                    concurrentQueriesReporter,
+                    concurrentQueueReporter,
+                    concurrentSchemaOpsReporter,
+                    maxMemoryQueriesReporter,
+                    maxCPUQueriesReporter,
+                    maxTimeReporter,
+                    memoryAllocatedReporter,
+                    requestCounterReporter,
+                    requestsByQueueReporter,
+                    slowestMetadataQueriesReporter,
+                    slowestPlanningQueriesReporter,
+                    startFinishReporter,
+                    totalQueriesReporter),
                 reporter);
         ctx.html(baos.toString(StandardCharsets.UTF_8));
       }
@@ -148,9 +195,6 @@ public class PostQueriesJson implements Handler {
       logger.log(Level.SEVERE, "unexpected error", ex);
       ctx.html("<html><body>" + ex.getMessage() + "</body>");
     } finally {
-      for (Extraction e : extractions) {
-        e.close();
-      }
       logger.info("queries.json report generated");
       var end = Instant.now();
       usageLogger.LogUsage(

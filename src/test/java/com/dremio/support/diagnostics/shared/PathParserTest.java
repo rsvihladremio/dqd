@@ -47,7 +47,7 @@ class PathParserTest {
 
     @Test
     void test2FilesAreFound() {
-      assertEquals(files.length,2);
+      assertEquals(files.length, 2);
     }
 
     @Test
@@ -99,13 +99,13 @@ class PathParserTest {
     @Test
     void testUnknownFilesResultInAnException() {
       try {
-             new PathParser()
-                      .convertPathToFiles(
-                          new File(
-                                  "src/test/resources/com/dremio/support/diagnostics/testdir/testfile.json,NOWHEREVALID")
-                              .getAbsolutePath());
-                              assertFalse(true, "we should not hit this it means there was no exception");
-      }catch(FileNotFoundException ex){
+        new PathParser()
+            .convertPathToFiles(
+                new File(
+                        "src/test/resources/com/dremio/support/diagnostics/testdir/testfile.json,NOWHEREVALID")
+                    .getAbsolutePath());
+        assertFalse(true, "we should not hit this it means there was no exception");
+      } catch (FileNotFoundException ex) {
         assertTrue(ex.getMessage().contains("NOWHEREVALID"));
       }
     }
@@ -127,7 +127,7 @@ class PathParserTest {
 
     @Test
     void testOnlyOneFileFound() {
-      assertEquals(files.length,1);
+      assertEquals(files.length, 1);
     }
 
     @Test
@@ -140,10 +140,10 @@ class PathParserTest {
   static class PathParserWhenSingleFileUsedIsNotFoundTest {
     @Test
     void testThrowsException() {
-      try{
-          new PathParser().convertPathToFiles(new File("NOWHEREVALID").getAbsolutePath());
-          assertFalse(true, "we should not hit this it means there was no exception");
-      }catch(FileNotFoundException ex){
+      try {
+        new PathParser().convertPathToFiles(new File("NOWHEREVALID").getAbsolutePath());
+        assertFalse(true, "we should not hit this it means there was no exception");
+      } catch (FileNotFoundException ex) {
         assertTrue(ex.getMessage().contains("NOWHEREVALID"));
       }
     }

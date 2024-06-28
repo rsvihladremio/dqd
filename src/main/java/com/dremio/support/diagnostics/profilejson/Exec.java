@@ -15,7 +15,6 @@ package com.dremio.support.diagnostics.profilejson;
 
 import com.dremio.support.diagnostics.shared.ProfileProvider;
 import com.dremio.support.diagnostics.shared.dto.profilejson.ProfileJSON;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,16 +49,17 @@ public class Exec {
             profile1,
             profile2);
     logger.info("console reporter selected");
-    var report = new HtmlProfileComparisonReport(
-      true,
-      this.profile1Provider.getFilePath().toString(),
-      this.profile2Provider.getFilePath().toString(),
-      profile1,
-      profile2,
-      differences);
-      final long epoch = Instant.now().toEpochMilli();
-      String path = String.format("profile-compare-%d.html", epoch);
-      Files.write(Path.of(path), report.getText().getBytes());
-      System.out.printf("wrote report %s to disk", path.toString());
+    var report =
+        new HtmlProfileComparisonReport(
+            true,
+            this.profile1Provider.getFilePath().toString(),
+            this.profile2Provider.getFilePath().toString(),
+            profile1,
+            profile2,
+            differences);
+    final long epoch = Instant.now().toEpochMilli();
+    String path = String.format("profile-compare-%d.html", epoch);
+    Files.write(Path.of(path), report.getText().getBytes());
+    System.out.printf("wrote report %s to disk", path.toString());
   }
 }

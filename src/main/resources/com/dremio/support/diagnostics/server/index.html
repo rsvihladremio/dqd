@@ -189,13 +189,13 @@
                             </div>
                             <div class="s6">
                                 <div class="field prefix border classic-report">
-                                    <select name="fallback_bucket_seconds">
-                                        <option value="86400">Daily</option>
-                                        <option value="3600">Hourly</option>
-                                        <option value="600">10 Minute (caution may take a long time)</option>
-                                        <option value="60">1 Minute (caution may take a VERY long time)</option>
+                                    <select name="window">
+                                        <option value="86400000">Daily</option>
+                                        <option value="3600000">Hourly</option>
+                                        <option value="60000">1 Minute</option>
+                                        <option value="1000">1 Second</option>
                                     </select><i>arrow_drop_down</i>
-                                    <span class="helper">Large report bucket size</span>
+                                    <span class="helper">Bucket size</span>
                                 </div>
                             </div>
                             <div class="s12">

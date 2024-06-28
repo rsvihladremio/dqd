@@ -38,14 +38,13 @@ class PdsSqlTest {
 
     @Test
     void testTableName() {
-      assertEquals(pdsSql.getTableName(),tableName);
+      assertEquals(pdsSql.getTableName(), tableName);
     }
 
     @Test
     void testSql() {
-      assertEquals(pdsSql.getSql(),sql);
+      assertEquals(pdsSql.getSql(), sql);
     }
-
   }
 
   @Nested
@@ -66,7 +65,7 @@ class PdsSqlTest {
 
     @Test
     void testEqualsTheSameFieldsForTwoInstances() {
-      assertEquals(pdsSql1,pdsSql2);
+      assertEquals(pdsSql1, pdsSql2);
     }
 
     @Test
@@ -107,12 +106,12 @@ class PdsSqlTest {
   @Test
   void testHashCode() {
     final PdsSql pds = new PdsSql("test", "select * from foo");
-    assertEquals(pds.hashCode(),-292390503L);
+    assertEquals(pds.hashCode(), -292390503L);
   }
 
   @Test
   void testString() {
     final PdsSql pds = new PdsSql("test", "select * from foo");
-    assertEquals(pds.toString(),"PdsSql{tableName='test', sql='select * from foo}");
+    assertEquals(pds.toString(), "PdsSql{tableName='test', sql='select * from foo}");
   }
 }

@@ -55,14 +55,17 @@ public class BlockReport implements ProfileJSONReport {
         Arrays.asList(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockingOperatorReport.getBlockedUpstreamMillis()),
-                blockingOperatorReport.getBlockedDownstreamMillis()),
+                blockingOperatorReport.getBlockedDownstreamMillis(),
+                false),
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(
                     blockingOperatorReport.getBlockedDownstreamMillis()),
-                blockingOperatorReport.getBlockedDownstreamMillis()),
+                blockingOperatorReport.getBlockedDownstreamMillis(),
+                false),
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockingOperatorReport.getBlockedOnSharedMillis()),
-                blockingOperatorReport.getBlockedOnSharedMillis())));
+                blockingOperatorReport.getBlockedOnSharedMillis(),
+                false)));
     final String headerTable =
         tableBuilder.generateTable(
             "mostBlockedPhase",
@@ -76,31 +79,37 @@ public class BlockReport implements ProfileJSONReport {
           new ArrayList<>();
       for (PhaseBlockStats blockStats : blockingOperatorReport.getUpstream()) {
         List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
-        cols.add(new HtmlTableDataColumn<>(blockStats.getPhase(), null));
+        cols.add(new HtmlTableDataColumn<>(blockStats.getPhase(), null, false));
         cols.add(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockStats.getMaxBlockTime()),
-                blockStats.getMaxBlockTime()));
+                blockStats.getMaxBlockTime(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 String.format("%.2f%%", blockStats.getMaxBlockTimePercentage()),
-                blockStats.getMaxBlockTimePercentage()));
+                blockStats.getMaxBlockTimePercentage(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockStats.getSleepTime()),
-                blockStats.getSleepTime()));
+                blockStats.getSleepTime(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 String.format("%.2f%%", blockStats.getSleepTimePercentage()),
-                blockStats.getSleepTimePercentage()));
+                blockStats.getSleepTimePercentage(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockStats.getRunTime()),
-                blockStats.getRunTime()));
+                blockStats.getRunTime(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 String.format("%.2f%%", blockStats.getRunTimePercentage()),
-                blockStats.getRunTimePercentage()));
+                blockStats.getRunTimePercentage(),
+                false));
         upstreamRows.add(cols);
       }
       builder.append(
@@ -123,46 +132,53 @@ public class BlockReport implements ProfileJSONReport {
           new ArrayList<>();
       for (PhaseBlockStats blockStats : blockingOperatorReport.getDownstream()) {
         List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
-        cols.add(new HtmlTableDataColumn<>(blockStats.getPhase(), null));
+        cols.add(new HtmlTableDataColumn<>(blockStats.getPhase(), null, false));
         cols.add(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockStats.getMaxBlockTime()),
-                blockStats.getMaxBlockTime()));
+                blockStats.getMaxBlockTime(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 String.format("%.2f%%", blockStats.getMaxBlockTimePercentage()),
-                blockStats.getMaxBlockTimePercentage()));
+                blockStats.getMaxBlockTimePercentage(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockStats.getSleepTime()),
-                blockStats.getSleepTime()));
+                blockStats.getSleepTime(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 String.format("%.2f%%", blockStats.getSleepTimePercentage()),
-                blockStats.getSleepTimePercentage()));
+                blockStats.getSleepTimePercentage(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(blockStats.getRunTime()),
-                blockStats.getRunTime()));
+                blockStats.getRunTime(),
+                false));
         cols.add(
             new HtmlTableDataColumn<>(
                 String.format("%.2f%%", blockStats.getRunTimePercentage()),
-                blockStats.getRunTimePercentage()));
+                blockStats.getRunTimePercentage(),
+                false));
         downstreamRows.add(cols);
       }
       if (downstreamRows.isEmpty() && mostBlockedPhaseName.equals("00-00-xx")) {
         List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
-        cols.add(new HtmlTableDataColumn<>("JDBC/ODBC/REST/ETC CLIENT", null));
-        cols.add(new HtmlTableDataColumn<>("0 millis", 0));
-        cols.add(new HtmlTableDataColumn<>("0.0%", 0.0));
-        cols.add(new HtmlTableDataColumn<>("0 millis", 0));
-        cols.add(new HtmlTableDataColumn<>("0.0%", 0.0));
+        cols.add(new HtmlTableDataColumn<>("JDBC/ODBC/REST/ETC CLIENT", null, false));
+        cols.add(new HtmlTableDataColumn<>("0 millis", 0, false));
+        cols.add(new HtmlTableDataColumn<>("0.0%", 0.0, false));
+        cols.add(new HtmlTableDataColumn<>("0 millis", 0, false));
+        cols.add(new HtmlTableDataColumn<>("0.0%", 0.0, false));
         cols.add(
             new HtmlTableDataColumn<>(
                 Human.getHumanDurationFromMillis(
                     blockingOperatorReport.getBlockedDownstreamMillis()),
-                blockingOperatorReport.getBlockedDownstreamMillis()));
-        cols.add(new HtmlTableDataColumn<>(String.format("%.2f%%", 100.0), 100.0));
+                blockingOperatorReport.getBlockedDownstreamMillis(),
+                false));
+        cols.add(new HtmlTableDataColumn<>(String.format("%.2f%%", 100.0), 100.0, false));
         downstreamRows.add(cols);
       }
       builder.append(

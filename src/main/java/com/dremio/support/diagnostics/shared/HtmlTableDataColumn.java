@@ -13,13 +13,21 @@
  */
 package com.dremio.support.diagnostics.shared;
 
-public record HtmlTableDataColumn<D, S>(D data, S sortableData) {
+public record HtmlTableDataColumn<D, S>(D data, S sortableData, boolean limitText) {
 
   public static <D, S> HtmlTableDataColumn<D, S> col(D data) {
-    return new HtmlTableDataColumn<D, S>(data, null);
+    return new HtmlTableDataColumn<D, S>(data, null, false);
+  }
+
+  public static <D, S> HtmlTableDataColumn<D, S> col(D data, boolean limitText) {
+    return new HtmlTableDataColumn<D, S>(data, null, limitText);
   }
 
   public static <D, S> HtmlTableDataColumn<D, S> col(D data, S sortableData) {
-    return new HtmlTableDataColumn<D, S>(data, sortableData);
+    return new HtmlTableDataColumn<D, S>(data, sortableData, false);
+  }
+
+  public static <D, S> HtmlTableDataColumn<D, S> col(D data, S sortableData, boolean limitText) {
+    return new HtmlTableDataColumn<D, S>(data, sortableData, limitText);
   }
 }

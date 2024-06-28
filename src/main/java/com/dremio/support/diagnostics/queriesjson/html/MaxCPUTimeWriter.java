@@ -24,17 +24,17 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class MaxMemoryQueriesWriter {
-  public static String generateMaxMemoryAllocated(final Collection<Query> top5) {
+public class MaxCPUTimeWriter {
+  public static String generate(final Collection<Query> top) {
     final StringBuilder builder = new StringBuilder();
-    if (top5.isEmpty()) {
-      builder.append("<h2>Max Memory Allocated</h2>");
+    if (top.isEmpty()) {
+      builder.append("<h2>Max Excecution CPU Time</h2>");
       builder.append("<p>No Queries Found</p>");
       return builder.toString();
     }
     var htmlBuilder = new HtmlTableBuilder();
     Collection<Collection<HtmlTableDataColumn<String, Number>>> rows = new ArrayList<>();
-    top5.forEach(
+    top.forEach(
         x ->
             rows.add(
                 asList(
@@ -43,14 +43,16 @@ public class MaxMemoryQueriesWriter {
                     col(
                         Human.getHumanDurationFromMillis(x.getFinish() - x.getStart()),
                         x.getFinish() - x.getStart()),
-                    col(Human.getHumanBytes1024(x.getMemoryAllocated()), x.getMemoryAllocated()),
+                    col(
+                        Human.getHumanDurationFromMillis(x.getExecutionCpuTimeNs() / 1_000_000),
+                        x.getMemoryAllocated()),
                     col(x.getQueryText(), true))));
 
     builder.append(
         htmlBuilder.generateTable(
-            "maxMemoryAllocatedTable",
-            "Max Memory Allocated",
-            asList("query id", "start", "query duration", "mem", "query"),
+            "maxCPUTimeTable",
+            "Max Excecution CPU Time",
+            asList("query id", "start", "query duration", "cpu time", "query"),
             rows));
     return builder.toString();
   }

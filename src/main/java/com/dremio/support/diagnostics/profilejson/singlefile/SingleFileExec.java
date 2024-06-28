@@ -15,13 +15,12 @@ package com.dremio.support.diagnostics.profilejson.singlefile;
 
 import com.dremio.support.diagnostics.shared.ProfileProvider;
 import com.dremio.support.diagnostics.shared.dto.profilejson.ProfileJSON;
-
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.util.logging.Logger;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /** simplistic first pass analysis of profile.json */
 public class SingleFileExec {

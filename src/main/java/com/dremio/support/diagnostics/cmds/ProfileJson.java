@@ -36,18 +36,18 @@ import picocli.CommandLine.Option;
     footer =
         """
 
-                    #### EXAMPLES
-                    ~~~~~~~~~~~~~
+#### EXAMPLES
+~~~~~~~~~~~~~
 
-                    ##### Generate a summary analysis
+##### Generate a summary analysis
 
-                    \tdqd profile-json profile.zip
+\tdqd profile-json profile.zip
 
-                    ##### Compare two profiles and their plans
+##### Compare two profiles and their plans
 
-                    \tdqd profile-json 1st.zip -c 2nd.zip --show-plan-details
+\tdqd profile-json 1st.zip -c 2nd.zip --show-plan-details
 
-                    """,
+""",
     subcommands = CommandLine.HelpCommand.class)
 public class ProfileJson implements Callable<Integer> {
 

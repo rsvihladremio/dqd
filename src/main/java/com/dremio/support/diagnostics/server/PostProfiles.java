@@ -85,8 +85,8 @@ public class PostProfiles implements Handler {
       HtmlProfileComparisonReport htmlProfileComparisonReport =
           new HtmlProfileComparisonReport(
               showConvertToRel,
-            profile1.filename().toString(),
-            profile2.filename().toString(),
+              profile1.filename().toString(),
+              profile2.filename().toString(),
               profile1Parsed,
               profile2Parsed,
               diffs);

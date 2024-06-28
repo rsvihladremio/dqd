@@ -71,10 +71,10 @@ public class JsLibraryTextProvider {
    */
   public String getSortableText() {
     return """
-                document.addEventListener("click",function(c){try{function h(b,a){return b.nodeName===a?b:h(b.parentNode,a)}var w=c.shiftKey||c.altKey,d=h(c.target,"TH"),m=d.parentNode,n=m.parentNode,g=n.parentNode;function p(b,a){b.classList.remove("dir-d");b.classList.remove("dir-u");a&&b.classList.add(a)}function q(b){var a;return w?b.dataset.sortAlt:null!==(a=b.dataset.sort)&&void 0!==a?a:b.textContent}if("THEAD"===n.nodeName&&g.classList.contains("sortable")&&!d.classList.contains("no-sort")){var r,f=m.cells,
-                t=parseInt(d.dataset.sortTbr);for(c=0;c<f.length;c++)f[c]===d?r=parseInt(d.dataset.sortCol)||c:p(f[c],"");f="dir-d";if(d.classList.contains("dir-d")||g.classList.contains("asc")&&!d.classList.contains("dir-u"))f="dir-u";p(d,f);var x="dir-u"===f,y=g.classList.contains("n-last"),u=function(b,a,e){a=q(a.cells[e]);b=q(b.cells[e]);if(y){if(""===a&&""!==b)return-1;if(""===b&&""!==a)return 1}e=Number(a)-Number(b);a=isNaN(e)?a.localeCompare(b):e;return x?-a:a};for(c=0;c<g.tBodies.length;c++){var k=g.tBodies[c],
-                v=[].slice.call(k.rows,0);v.sort(function(b,a){var e=u(b,a,r);return 0!==e||isNaN(t)?e:u(b,a,t)});var l=k.cloneNode();l.append.apply(l,v);g.replaceChild(l,k)}}}catch(h){}});
-                        """;
+document.addEventListener("click",function(c){try{function h(b,a){return b.nodeName===a?b:h(b.parentNode,a)}var w=c.shiftKey||c.altKey,d=h(c.target,"TH"),m=d.parentNode,n=m.parentNode,g=n.parentNode;function p(b,a){b.classList.remove("dir-d");b.classList.remove("dir-u");a&&b.classList.add(a)}function q(b){var a;return w?b.dataset.sortAlt:null!==(a=b.dataset.sort)&&void 0!==a?a:b.textContent}if("THEAD"===n.nodeName&&g.classList.contains("sortable")&&!d.classList.contains("no-sort")){var r,f=m.cells,
+t=parseInt(d.dataset.sortTbr);for(c=0;c<f.length;c++)f[c]===d?r=parseInt(d.dataset.sortCol)||c:p(f[c],"");f="dir-d";if(d.classList.contains("dir-d")||g.classList.contains("asc")&&!d.classList.contains("dir-u"))f="dir-u";p(d,f);var x="dir-u"===f,y=g.classList.contains("n-last"),u=function(b,a,e){a=q(a.cells[e]);b=q(b.cells[e]);if(y){if(""===a&&""!==b)return-1;if(""===b&&""!==a)return 1}e=Number(a)-Number(b);a=isNaN(e)?a.localeCompare(b):e;return x?-a:a};for(c=0;c<g.tBodies.length;c++){var k=g.tBodies[c],
+v=[].slice.call(k.rows,0);v.sort(function(b,a){var e=u(b,a,r);return 0!==e||isNaN(t)?e:u(b,a,t)});var l=k.cloneNode();l.append.apply(l,v);g.replaceChild(l,k)}}}catch(h){}});
+""";
   }
 
   /**
@@ -86,8 +86,8 @@ public class JsLibraryTextProvider {
    */
   public String getSortableCSSText() {
     return """
-                .sortable thead th:not(.no-sort){cursor:pointer}.sortable thead th:not(.no-sort)::after,.sortable thead th:not(.no-sort)::before{transition:color .1s ease-in-out;font-size:1.2em;color:rgba(0,0,0,0)}.sortable thead th:not(.no-sort)::after{margin-left:3px;content:"▸"}.sortable thead th:not(.no-sort):hover::after{color:inherit}.sortable thead th:not(.no-sort).dir-d::after{color:inherit;content:"▾"}.sortable thead th:not(.no-sort).dir-u::after{color:inherit;content:"▴"}.sortable thead th:not(.no-sort).indicator-left::after{content:""}.sortable thead th:not(.no-sort).indicator-left::before{margin-right:3px;content:"▸"}.sortable thead th:not(.no-sort).indicator-left:hover::before{color:inherit}.sortable thead th:not(.no-sort).indicator-left.dir-d::before{color:inherit;content:"▾"}.sortable thead th:not(.no-sort).indicator-left.dir-u::before{color:inherit;content:"▴"}/*# sourceMappingURL=sortable-base.min.css.map */
-                """;
+.sortable thead th:not(.no-sort){cursor:pointer}.sortable thead th:not(.no-sort)::after,.sortable thead th:not(.no-sort)::before{transition:color .1s ease-in-out;font-size:1.2em;color:rgba(0,0,0,0)}.sortable thead th:not(.no-sort)::after{margin-left:3px;content:"▸"}.sortable thead th:not(.no-sort):hover::after{color:inherit}.sortable thead th:not(.no-sort).dir-d::after{color:inherit;content:"▾"}.sortable thead th:not(.no-sort).dir-u::after{color:inherit;content:"▴"}.sortable thead th:not(.no-sort).indicator-left::after{content:""}.sortable thead th:not(.no-sort).indicator-left::before{margin-right:3px;content:"▸"}.sortable thead th:not(.no-sort).indicator-left:hover::before{color:inherit}.sortable thead th:not(.no-sort).indicator-left.dir-d::before{color:inherit;content:"▾"}.sortable thead th:not(.no-sort).indicator-left.dir-u::before{color:inherit;content:"▴"}/*# sourceMappingURL=sortable-base.min.css.map */
+""";
   }
 
   public String getTableCSS() {
@@ -133,85 +133,85 @@ public class JsLibraryTextProvider {
 
   public String getCSVExportText() {
     return """
-                    // Quick and simple export target #table_id into a csv
-                    function exportAsCSV(table_id, separator = ',') {
-                        // Select rows from table_id
-                        var rows = document.querySelectorAll('#' + table_id + ' tr');
-                        // Construct csv
-                        var csv = [];
-                        for (var i = 0; i < rows.length; i++) {
-                            if(rows[i].style.display== "none"){
-                                continue;
-                            }
-                            var row = [], cols = rows[i].querySelectorAll('td, th');
-                            for (var j = 0; j < cols.length; j++) {
-                                // Clean innertext to remove multiple spaces and jumpline (break csv)
-                                var data = cols[j].innerText.replace(/(\\r\\n|\\n|\\r)/gm, '').replace(/(\\s\\s)/gm, ' ')
-                                    // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
-                                    data = data.replace(/"/g, '""');
-                                // Push escaped string
-                                row.push('"' + data + '"');
-                            }
-                            csv.push(row.join(separator));
-                        }
-                        var csv_string = csv.join('\\n');
-                        // Download it
-                        var filename = 'export_' + table_id + '_' + new Date().toLocaleDateString() + '.csv';
-                        var link = document.createElement('a');
-                        link.style.display = 'none';
-                        link.setAttribute('target', '_blank');
-                        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
-                        link.setAttribute('download', filename);
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    }
-                """;
+    // Quick and simple export target #table_id into a csv
+    function exportAsCSV(table_id, separator = ',') {
+        // Select rows from table_id
+        var rows = document.querySelectorAll('#' + table_id + ' tr');
+        // Construct csv
+        var csv = [];
+        for (var i = 0; i < rows.length; i++) {
+            if(rows[i].style.display== "none"){
+                continue;
+            }
+            var row = [], cols = rows[i].querySelectorAll('td, th');
+            for (var j = 0; j < cols.length; j++) {
+                // Clean innertext to remove multiple spaces and jumpline (break csv)
+                var data = cols[j].innerText.replace(/(\\r\\n|\\n|\\r)/gm, '').replace(/(\\s\\s)/gm, ' ')
+                    // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
+                    data = data.replace(/"/g, '""');
+                // Push escaped string
+                row.push('"' + data + '"');
+            }
+            csv.push(row.join(separator));
+        }
+        var csv_string = csv.join('\\n');
+        // Download it
+        var filename = 'export_' + table_id + '_' + new Date().toLocaleDateString() + '.csv';
+        var link = document.createElement('a');
+        link.style.display = 'none';
+        link.setAttribute('target', '_blank');
+        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+""";
   }
 
   public String getFilterTableText() {
     return """
-                    function filterTable(tableID, input, rowsTextSpan) {
-                        // Declare variables
-                        var input, filter, table, tr, td, i, txtValue;
-                        input = document.getElementById(input);
-                        rowsText = document.getElementById(rowsTextSpan);
-                        filter = input.value.toUpperCase();
-                        table = document.getElementById(tableID);
-                        tr = table.rows;
+    function filterTable(tableID, input, rowsTextSpan) {
+        // Declare variables
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById(input);
+        rowsText = document.getElementById(rowsTextSpan);
+        filter = input.value.toUpperCase();
+        table = document.getElementById(tableID);
+        tr = table.rows;
 
-                        let count = -1;//it is -1 to skip the header
-                                       // Loop through all table rows, and hide those who don't match the search query
-                        for (i = 0; i < tr.length; i++) {
-                            tds = tr[i].getElementsByTagName("td");
-                            var matches = false;
-                            var validRow = false;
-                            for (y = 0; y < tds.length; y++) {
-                                td = tds[y];
-                                if (td) {
-                                    validRow = true
-                                        txtValue = td.textContent || td.innerText;
-                                    if (isNaN){
-                                        matches = txtValue.toUpperCase().indexOf(filter) > -1;
-                                        if (matches){
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if (!matches && validRow){
-                                tr[i].style.display = "none";
-                            } else {
-                                count++
-                                    tr[i].style.display = "";
-                            }
-                        }
-                        if (count != 1){
-                            rowsText.innerText= " " + count + " rows shown";
-                        } else {
-                            rowsText.innerText= " " + count + " row shown";
+        let count = -1;//it is -1 to skip the header
+                       // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            tds = tr[i].getElementsByTagName("td");
+            var matches = false;
+            var validRow = false;
+            for (y = 0; y < tds.length; y++) {
+                td = tds[y];
+                if (td) {
+                    validRow = true
+                        txtValue = td.textContent || td.innerText;
+                    if (isNaN){
+                        matches = txtValue.toUpperCase().indexOf(filter) > -1;
+                        if (matches){
+                            break;
                         }
                     }
-                """;
+                }
+            }
+            if (!matches && validRow){
+                tr[i].style.display = "none";
+            } else {
+                count++
+                    tr[i].style.display = "";
+            }
+        }
+        if (count != 1){
+            rowsText.innerText= " " + count + " rows shown";
+        } else {
+            rowsText.innerText= " " + count + " row shown";
+        }
+    }
+""";
   }
 }

@@ -41,17 +41,17 @@ class VdsSqlTest {
 
     @Test
     void testTableName() {
-      assertEquals(vdsSql.getTableName(),tableName);
+      assertEquals(vdsSql.getTableName(), tableName);
     }
 
     @Test
     void testSql() {
-      assertEquals(vdsSql.getSql(),sql);
+      assertEquals(vdsSql.getSql(), sql);
     }
 
     @Test
     void testTableReferences() {
-      assertEquals(vdsSql.getTableReferences(),tableReferences);
+      assertEquals(vdsSql.getTableReferences(), tableReferences);
     }
   }
 
@@ -74,7 +74,7 @@ class VdsSqlTest {
 
     @Test
     void testEquals() {
-      assertEquals(vdsSql1,vdsSql2);
+      assertEquals(vdsSql1, vdsSql2);
     }
 
     @Test
@@ -127,12 +127,14 @@ class VdsSqlTest {
   @Test
   void testHashCode() {
     VdsSql vds = new VdsSql("test", "select * from foo", new String[] {"abc"});
-    assertEquals(vds.hashCode(),-474074616L);
+    assertEquals(vds.hashCode(), -474074616L);
   }
 
   @Test
   void testString() {
     VdsSql vds = new VdsSql("test", "select * from foo", new String[] {"test"});
-    assertEquals(vds.toString(), "VdsSql{tableName='test', sql='select * from foo', tableReferences=[test]}");
+    assertEquals(
+        vds.toString(),
+        "VdsSql{tableName='test', sql='select * from foo', tableReferences=[test]}");
   }
 }

@@ -93,8 +93,10 @@ public class ProfileJSONSimplifiedTest {
       assertEquals(summary.totalPhases(), 1);
 
       var finding = summary.findings().stream().findFirst();
-      assertEquals(finding.get(), "97.36 % of the query time is taken up by the following phases [(METADATA_RETRIEVAL"
-                  + " 60.12%), (RUNNING 37.24%)]");
+      assertEquals(
+          finding.get(),
+          "97.36 % of the query time is taken up by the following phases [(METADATA_RETRIEVAL"
+              + " 60.12%), (RUNNING 37.24%)]");
     }
 
     @Test
@@ -150,134 +152,141 @@ public class ProfileJSONSimplifiedTest {
                     "summarize-profile-json",
                     FileTestHelpers.getTestProfile1().filePath().toAbsolutePath().toString());
               });
-
-      assertTrue(text
-          .contains(
+      System.out.println(text);
+      assertTrue(
+          text.contains(
               """
-                  <thead>
-                  <th>Name</th>
-                  <th>Process</th>
-                  <th>Wait</th>
-                  <th>Setup</th>
-                  <th>Total</th>
-                  <th>Size Processed</th>
-                  <th>Batches</th>
-                  <th>Records</th>
-                  <th>Records/Sec</th>
-                  <th>Peak RAM Allocated</th>
-                  <th>node</th>
-                  </thead>
-                  <tbody>
-                  <tr><td>TEXT_SUB_SCAN 00-00-08</td>
-                  <td data-sort="583322">0 millis</td>
-                  <td data-sort="877221339">877 millis</td>
-                  <td data-sort="1019591">1 milli</td>
-                  <td data-sort="878824252">878 millis</td>
-                  <td data-sort="18753">18.31 kb</td>
-                  <td data-sort="2">2</td>
-                  <td data-sort="485">485</td>
-                  <td data-sort="551.87">551.87</td>
-                  <td data-sort="1180416">1.13 mb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>HASH_AGGREGATE 00-00-06</td>
-                  <td data-sort="3240568">3 millis</td>
-                  <td data-sort="0">0 millis</td>
-                  <td data-sort="2036322">2 millis</td>
-                  <td data-sort="5276890">5 millis</td>
-                  <td data-sort="18753">18.31 kb</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="485">485</td>
-                  <td data-sort="91910.2">91,910.2</td>
-                  <td data-sort="10027008">9.56 mb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>ARROW_WRITER 00-00-03</td>
-                  <td data-sort="1046003">1 milli</td>
-                  <td data-sort="881656">0 millis</td>
-                  <td data-sort="260439">0 millis</td>
-                  <td data-sort="2188098">2 millis</td>
-                  <td data-sort="18903">18.46 kb</td>
-                  <td data-sort="8">8</td>
-                  <td data-sort="485">485</td>
-                  <td data-sort="221653.69">221,653.69</td>
-                  <td data-sort="1000000">976.56 kb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>PROJECT 00-00-07</td>
-                  <td data-sort="66321">0 millis</td>
-                  <td data-sort="0">0 millis</td>
-                  <td data-sort="779257">0 millis</td>
-                  <td data-sort="845578">0 millis</td>
-                  <td data-sort="18753">18.31 kb</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="485">485</td>
-                  <td data-sort="573572.16">573,572.16</td>
-                  <td data-sort="1000000">976.56 kb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>PROJECT 00-00-05</td>
-                  <td data-sort="112761">0 millis</td>
-                  <td data-sort="0">0 millis</td>
-                  <td data-sort="705821">0 millis</td>
-                  <td data-sort="818582">0 millis</td>
-                  <td data-sort="18903">18.46 kb</td>
-                  <td data-sort="8">8</td>
-                  <td data-sort="485">485</td>
-                  <td data-sort="592487.99">592,487.99</td>
-                  <td data-sort="1000000">976.56 kb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>WRITER_COMMITTER 00-00-02</td>
-                  <td data-sort="45104">0 millis</td>
-                  <td data-sort="0">0 millis</td>
-                  <td data-sort="532317">0 millis</td>
-                  <td data-sort="577421">0 millis</td>
-                  <td data-sort="964">964 bytes</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="1731.84">1,731.84</td>
-                  <td data-sort="1000000">976.56 kb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>PROJECT 00-00-01</td>
-                  <td data-sort="42634">0 millis</td>
-                  <td data-sort="0">0 millis</td>
-                  <td data-sort="403127">0 millis</td>
-                  <td data-sort="445761">0 millis</td>
-                  <td data-sort="964">964 bytes</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="2243.35">2,243.35</td>
-                  <td data-sort="1000000">976.56 kb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>PROJECT 00-00-04</td>
-                  <td data-sort="64070">0 millis</td>
-                  <td data-sort="0">0 millis</td>
-                  <td data-sort="368539">0 millis</td>
-                  <td data-sort="432609">0 millis</td>
-                  <td data-sort="18903">18.46 kb</td>
-                  <td data-sort="8">8</td>
-                  <td data-sort="485">485</td>
-                  <td data-sort="1121104.74">1,121,104.74</td>
-                  <td data-sort="1000000">976.56 kb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  <tr><td>SCREEN 00-00-00</td>
-                  <td data-sort="123848">0 millis</td>
-                  <td data-sort="130276">0 millis</td>
-                  <td data-sort="2680">0 millis</td>
-                  <td data-sort="256804">0 millis</td>
-                  <td data-sort="964">964 bytes</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="1">1</td>
-                  <td data-sort="3894.02">3,894.02</td>
-                  <td data-sort="1000000">976.56 kb</td>
-                  <td>laptop-jkcfofo7.home</td>
-                  </tr>
-                  </tbody>
-                  </table>"""));
+              <thead>
+              <th>Name</th>
+              <th>Process</th>
+              <th>Wait</th>
+              <th>Setup</th>
+              <th>Total</th>
+              <th>Size Processed</th>
+              <th>Batches</th>
+              <th>Records</th>
+              <th>Records/Sec</th>
+              <th>Peak RAM Allocated</th>
+              <th>node</th>
+              </thead>
+              <tbody>"""));
+      assertTrue(
+          text.contains(
+              """
+              <tr><td>TEXT_SUB_SCAN 00-00-08</td>
+              <td data-sort="583322">0 millis</td>
+              <td data-sort="877221339">877 millis</td>
+              <td data-sort="1019591">1 milli</td>
+              <td data-sort="878824252">878 millis</td>
+              <td data-sort="18753">18.31 kb</td>
+              <td data-sort="2">2</td>
+              <td data-sort="485">485</td>
+              <td data-sort="551.87">551.87</td>
+              <td data-sort="1180416">1.13 mb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              """));
+      assertTrue(
+          text.contains(
+              """
+              <tr><td>HASH_AGGREGATE 00-00-06</td>
+              <td data-sort="3240568">3 millis</td>
+              <td data-sort="0">0 millis</td>
+              <td data-sort="2036322">2 millis</td>
+              <td data-sort="5276890">5 millis</td>
+              <td data-sort="18753">18.31 kb</td>
+              <td data-sort="1">1</td>
+              <td data-sort="485">485</td>
+              <td data-sort="91910.2">91,910.2</td>
+              <td data-sort="10027008">9.56 mb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              <tr><td>ARROW_WRITER 00-00-03</td>
+              <td data-sort="1046003">1 milli</td>
+              <td data-sort="881656">0 millis</td>
+              <td data-sort="260439">0 millis</td>
+              <td data-sort="2188098">2 millis</td>
+              <td data-sort="18903">18.46 kb</td>
+              <td data-sort="8">8</td>
+              <td data-sort="485">485</td>
+              <td data-sort="221653.69">221,653.69</td>
+              <td data-sort="1000000">976.56 kb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              <tr><td>PROJECT 00-00-07</td>
+              <td data-sort="66321">0 millis</td>
+              <td data-sort="0">0 millis</td>
+              <td data-sort="779257">0 millis</td>
+              <td data-sort="845578">0 millis</td>
+              <td data-sort="18753">18.31 kb</td>
+              <td data-sort="1">1</td>
+              <td data-sort="485">485</td>
+              <td data-sort="573572.16">573,572.16</td>
+              <td data-sort="1000000">976.56 kb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              <tr><td>PROJECT 00-00-05</td>
+              <td data-sort="112761">0 millis</td>
+              <td data-sort="0">0 millis</td>
+              <td data-sort="705821">0 millis</td>
+              <td data-sort="818582">0 millis</td>
+              <td data-sort="18903">18.46 kb</td>
+              <td data-sort="8">8</td>
+              <td data-sort="485">485</td>
+              <td data-sort="592487.99">592,487.99</td>
+              <td data-sort="1000000">976.56 kb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              <tr><td>WRITER_COMMITTER 00-00-02</td>
+              <td data-sort="45104">0 millis</td>
+              <td data-sort="0">0 millis</td>
+              <td data-sort="532317">0 millis</td>
+              <td data-sort="577421">0 millis</td>
+              <td data-sort="964">964 bytes</td>
+              <td data-sort="1">1</td>
+              <td data-sort="1">1</td>
+              <td data-sort="1731.84">1,731.84</td>
+              <td data-sort="1000000">976.56 kb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              <tr><td>PROJECT 00-00-01</td>
+              <td data-sort="42634">0 millis</td>
+              <td data-sort="0">0 millis</td>
+              <td data-sort="403127">0 millis</td>
+              <td data-sort="445761">0 millis</td>
+              <td data-sort="964">964 bytes</td>
+              <td data-sort="1">1</td>
+              <td data-sort="1">1</td>
+              <td data-sort="2243.35">2,243.35</td>
+              <td data-sort="1000000">976.56 kb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              <tr><td>PROJECT 00-00-04</td>
+              <td data-sort="64070">0 millis</td>
+              <td data-sort="0">0 millis</td>
+              <td data-sort="368539">0 millis</td>
+              <td data-sort="432609">0 millis</td>
+              <td data-sort="18903">18.46 kb</td>
+              <td data-sort="8">8</td>
+              <td data-sort="485">485</td>
+              <td data-sort="1121104.74">1,121,104.74</td>
+              <td data-sort="1000000">976.56 kb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              <tr><td>SCREEN 00-00-00</td>
+              <td data-sort="123848">0 millis</td>
+              <td data-sort="130276">0 millis</td>
+              <td data-sort="2680">0 millis</td>
+              <td data-sort="256804">0 millis</td>
+              <td data-sort="964">964 bytes</td>
+              <td data-sort="1">1</td>
+              <td data-sort="1">1</td>
+              <td data-sort="3894.02">3,894.02</td>
+              <td data-sort="1000000">976.56 kb</td>
+              <td>laptop-jkcfofo7.home</td>
+              </tr>
+              </tbody>
+              </table>"""));
     }
   }
 }

@@ -13,6 +13,8 @@
  */
 package com.dremio.support.diagnostics.profilejson;
 
+import static com.dremio.support.diagnostics.shared.HtmlTableDataColumn.col;
+
 import com.dremio.support.diagnostics.profilejson.converttorel.ConvertToRelGraph;
 import com.dremio.support.diagnostics.profilejson.converttorel.ConvertToRelGraphParser;
 import com.dremio.support.diagnostics.profilejson.singlefile.GraphWriter;
@@ -25,8 +27,6 @@ import com.dremio.support.diagnostics.shared.dto.profilejson.FragmentProfile;
 import com.dremio.support.diagnostics.shared.dto.profilejson.MinorFragmentProfile;
 import com.dremio.support.diagnostics.shared.dto.profilejson.OperatorProfile;
 import com.dremio.support.diagnostics.shared.dto.profilejson.ProfileJSON;
-
-import static com.dremio.support.diagnostics.shared.HtmlTableDataColumn.col;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-
 
 public class HtmlProfileComparisonReport implements Report {
 
@@ -59,6 +58,9 @@ public class HtmlProfileComparisonReport implements Report {
     this.profile1 = profile1;
     this.profile2 = profile2;
     this.diffs = diffs;
+    if (this.diffs == null) {
+      throw new InvalidParameterException("the diffs cannot be null, this is a critical bug");
+    }
     if (parsed1 == null) {
       throw new InvalidParameterException("profile1 cannot be null, this is a critical bug");
     }
@@ -67,24 +69,25 @@ public class HtmlProfileComparisonReport implements Report {
       throw new InvalidParameterException("profile2 cannot be null, this is a critical bug");
     }
     this.parsed2 = parsed2;
-   
   }
 
-  private String displayDiff(){
+  private String displayDiff() {
     HtmlTableBuilder builder = new HtmlTableBuilder();
     final Collection<Collection<HtmlTableDataColumn<String, String>>> rows = new ArrayList<>();
-    diffs.forEach(x->{
-      rows.add(Arrays.asList(
-        col(x.getName()),
-        col(x.getProfile1Value()),
-        col(x.getProfile2Value()),
-        col(x.getAdvice())
-      ));
-    }
-    );
-    return builder.generateTable("plan differences", "list a diff of each stage of the plan", Arrays.asList("plan",this.profile1, this.profile2, "advice"),
-    rows);
-      
+    diffs.forEach(
+        x -> {
+          rows.add(
+              Arrays.asList(
+                  col(x.getName()),
+                  col(x.getProfile1Value()),
+                  col(x.getProfile2Value()),
+                  col(x.getAdvice())));
+        });
+    return builder.generateTable(
+        "plan differences",
+        "list a diff of each stage of the plan",
+        Arrays.asList("plan", this.profile1, this.profile2, "advice"),
+        rows);
   }
 
   @Override

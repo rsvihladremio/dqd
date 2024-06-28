@@ -37,7 +37,7 @@ public class FindingsReport implements ProfileJSONReport {
     HtmlTableBuilder builder = new HtmlTableBuilder();
     List<Collection<HtmlTableDataColumn<String, Number>>> findings = new ArrayList<>();
     for (String finding : FindingsReport.searchForFindings(profileJson, relations)) {
-      findings.add(Collections.singletonList(new HtmlTableDataColumn<>(finding, null)));
+      findings.add(Collections.singletonList(new HtmlTableDataColumn<>(finding, null, false)));
     }
     return builder.generateTable(
         "findingsTable", "Findings", Collections.singletonList(""), findings);

@@ -45,8 +45,7 @@ public class DQDWebServer {
    * @param usageLogger
    * @throws IOException occurs when we are unable to read the index.html file
    */
-  public DQDWebServer(final UsageLogger usageLogger)
-      throws IOException {
+  public DQDWebServer(final UsageLogger usageLogger) throws IOException {
     this(
         new GetIndex(),
         new PostProfile(usageLogger),

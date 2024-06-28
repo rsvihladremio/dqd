@@ -41,7 +41,7 @@ public class ConcurrentQueriesReporter implements QueryReporter {
     // counting and
     // therefore the finish will not added to the counts map
     long finish = TimeUtils.truncateEpoch(q.getFinish(), this.window) + this.window;
-    while (start != finish) {
+    while (start < finish) {
       lock.lock();
       if (counts.containsKey(start)) {
         long i = counts.get(start);

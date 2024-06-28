@@ -18,26 +18,29 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class SlowestPlanningQueriesReporter implements QueryReporter {
-  private final long limit;
+public class MaxCPUQueriesReporter implements QueryReporter {
   private List<Query> queries = new ArrayList<>();
 
-  public synchronized List<Query> getQueries() {
+  public List<Query> getQueries() {
     return queries;
   }
 
-  public SlowestPlanningQueriesReporter(final long limit) {
+  private final long limit;
+
+  public MaxCPUQueriesReporter(final long limit) {
     this.limit = limit;
   }
 
   @Override
-  public synchronized void parseRow(final Query q) {
-    queries.add(q);
-    queries =
+  public synchronized void parseRow(Query q) {
+    this.queries.add(q);
+    // need to make sure use an array list to make this writeable again since toList makes it
+    // immutable
+    this.queries =
         new ArrayList<>(
-            queries.stream()
-                .sorted(Comparator.comparingLong(Query::getPlanningTime).reversed())
-                .limit(limit)
+            this.queries.stream()
+                .sorted(Comparator.comparingLong(Query::getExecutionCpuTimeNs).reversed())
+                .limit(this.limit)
                 .toList());
   }
 }

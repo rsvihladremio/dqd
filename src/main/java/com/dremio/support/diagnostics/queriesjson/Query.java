@@ -63,7 +63,16 @@ public class Query {
   // private long executionStart;
   // private Object[] scannedDatasets;
   // private Object[] executionNodes;
-  // private long executionCpuTimeNs;
+  private long executionCpuTimeNs;
+
+  public long getExecutionCpuTimeNs() {
+    return executionCpuTimeNs;
+  }
+
+  public void setExecutionCpuTimeNs(long executionCpuTimeNs) {
+    this.executionCpuTimeNs = executionCpuTimeNs;
+  }
+
   // private long setupTimeNs;
   // private long waitTimeNs;
   private long memoryAllocated;

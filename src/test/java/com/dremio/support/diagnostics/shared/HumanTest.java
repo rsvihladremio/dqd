@@ -67,7 +67,8 @@ class HumanTest {
 
   @Test
   void testGetHumanDurationFromMillisToHoursMoreThanOneHour() {
-    assertEquals(Human.getHumanDurationFromMillis(90000L * 60), "1" + numberSeparator() + "50 hours");
+    assertEquals(
+        Human.getHumanDurationFromMillis(90000L * 60), "1" + numberSeparator() + "50 hours");
   }
 
   @Test
@@ -78,6 +79,6 @@ class HumanTest {
   @Test
   void testGetHumanDurationFromMillisToDaysMoreThanOneDay() {
     var msg = Human.getHumanDurationFromMillis(90000L * 60 * 24);
-    assertEquals(msg ,"1" + numberSeparator() + "50 days");
+    assertEquals(msg, "1" + numberSeparator() + "50 days");
   }
 }
