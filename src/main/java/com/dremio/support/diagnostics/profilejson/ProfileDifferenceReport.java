@@ -269,7 +269,6 @@ public class ProfileDifferenceReport implements Differ {
                 v2Value = v2Value.substring(1, v2Value.length() - 1);
                 v2Lines = Arrays.stream(v2Value.split(",")).collect(Collectors.toList());
               }
-              // TODO we probably do not actually need this and can remove it in favor of manual
               // comparison
               final List<DiffRow> rows = generator.generateDiffRows(v1Lines, v2Lines);
               for (final DiffRow row : rows) {

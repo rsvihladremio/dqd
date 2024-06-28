@@ -13,14 +13,13 @@
  */
 package com.dremio.support.diagnostics.profilejson.singlefile;
 
-import com.dremio.support.diagnostics.profilejson.singlefile.reports.ProfileSummaryConsoleReport;
-import com.dremio.support.diagnostics.shared.ConsoleReporter;
 import com.dremio.support.diagnostics.shared.ProfileProvider;
-import com.dremio.support.diagnostics.shared.Report;
-import com.dremio.support.diagnostics.shared.Reporter;
 import com.dremio.support.diagnostics.shared.dto.profilejson.ProfileJSON;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidParameterException;
+import java.time.Instant;
 import java.util.logging.Logger;
 
 /** simplistic first pass analysis of profile.json */
@@ -45,17 +44,16 @@ public class SingleFileExec {
    *     detailed report of all plan phases will be shown
    * @throws IOException usually when we cannot read the file
    */
-  public final void run(final boolean showPlanPhases) throws IOException {
+  public final void run() throws IOException {
     final ProfileJSON parsed = this.provider.getProfile();
     if (parsed == null) {
       throw new InvalidParameterException(
           String.format("file '%s' not parse-able", this.provider.getFilePath()));
     }
-    final Report consoleReport =
-        new ProfileSummaryConsoleReport(
-            String.valueOf(this.provider.getFilePath()), parsed, showPlanPhases);
-    logger.info("console reporter selected");
-    final Reporter reporter = new ConsoleReporter();
-    reporter.output(consoleReport);
+    long epoch = Instant.now().toEpochMilli();
+    var reporter = new SingleProfileJsonHtmlReport(true, true, parsed);
+    var path = String.format("profile%d.html", epoch);
+    Files.write(Path.of(path), reporter.getText().getBytes());
+    logger.info("report written to '%s'".formatted(path));
   }
 }

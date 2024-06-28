@@ -11,21 +11,10 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.queriesjson.filters;
 
-import com.dremio.support.diagnostics.shared.*;
-import java.io.*;
+import com.dremio.support.diagnostics.queriesjson.Query;
 
-/** entry point for the queries-json command */
-public class Exec {
-
-  /**
-   * starts the queries-json command (has the following properties) - is
-   * multi-threaded -
-   *
-   * @param files filepath, directory, or comma separated list of files to read
-   */
-  public void run(final QueriesJsonHtmlReport report, final Reporter reporter) throws IOException {
-    reporter.output(report);
-  }
+public interface QueryFilter {
+  boolean isValid(Query q);
 }

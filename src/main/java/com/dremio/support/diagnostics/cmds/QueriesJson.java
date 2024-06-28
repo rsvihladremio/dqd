@@ -15,24 +15,34 @@ package com.dremio.support.diagnostics.cmds;
 
 import com.dremio.support.diagnostics.queriesjson.Exec;
 import com.dremio.support.diagnostics.queriesjson.QueriesJsonHtmlReport;
-import com.dremio.support.diagnostics.shared.PathAndStream;
-import com.dremio.support.diagnostics.shared.PathParser;
+import com.dremio.support.diagnostics.queriesjson.ReadArchive;
+import com.dremio.support.diagnostics.queriesjson.filters.DateRangeQueryFilter;
+import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueueReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentSchemaOpsReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MaxCPUQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MaxMemoryQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MaxTimeReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.MemoryAllocatedReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.QueryReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.RequestCounterReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.RequestsByQueueReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.SlowestMetadataQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.SlowestPlanningQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.StartFinishReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.TotalQueriesReporter;
 import com.dremio.support.diagnostics.shared.Reporter;
 import com.dremio.support.diagnostics.shared.StreamWriterReporter;
-import com.dremio.support.diagnostics.shared.zip.ArchiveDetection;
-import com.dremio.support.diagnostics.shared.zip.Extraction;
-import com.dremio.support.diagnostics.shared.zip.UnzipperImpl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.ExecutionException;
+import org.apache.commons.io.FilenameUtils;
 import picocli.CommandLine;
 
 /**
@@ -54,29 +64,12 @@ import picocli.CommandLine;
     subcommands = CommandLine.HelpCommand.class)
 public class QueriesJson implements Callable<Integer> {
 
-  private static final Logger logger = Logger.getLogger(QueriesJson.class.getName());
-
   @CommandLine.Option(
-      names = {"-c", "--complexity-limit"},
-      defaultValue = "10000",
-      description =
-          "The complexity limit guards one from running out of heap or generating a graph that is"
-              + " unreadable when generating reports. This is the number of queries times the"
-              + " number of 1 second buckets and is a proxy for how expensive the calculation will"
-              + " be. The default should be fine for most modern hardware but if you would like you"
-              + " can override it here. When this is exceeded granularity will be reduced to the"
-              + " number of seconds specified in --fallback-resolution-seconds or -f",
+      names = {"-w", "--window-size"},
+      defaultValue = "86400000",
+      description = "window size in milliseconds to use for reporting",
       showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-  private Long complexityLimit;
-
-  @CommandLine.Option(
-      names = {"-f", "--fallback-resolution-seconds"},
-      defaultValue = "3600",
-      description =
-          "used with complexity limit to set the granularity of graphs from 1 second to this"
-              + " number.",
-      showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-  private Long fallbackResolutionSeconds;
+  private Long window;
 
   // the file parameter that comes in as the first non-command argument (not flag)
   // of the
@@ -108,14 +101,14 @@ public class QueriesJson implements Callable<Integer> {
       defaultValue = "2000-01-01",
       description = "filter out all queries that start before this value",
       showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-  private Instant start;
+  private LocalDate start;
 
   @CommandLine.Option(
       names = {"-e", "--end"},
       defaultValue = "2070-01-01",
       description = "filter out all queries that start after this value",
       showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-  private Instant end;
+  private LocalDate end;
 
   @CommandLine.Option(
       names = {"--limit"},
@@ -128,54 +121,83 @@ public class QueriesJson implements Callable<Integer> {
    * call() takes the values from the command line flags and just passes those
    * values to the
    * Exec#run instance method.
+   *
+   * @throws IOException
+   * @throws ExecutionException
+   * @throws InterruptedException
    */
   @Override
-  public Integer call() {
-    final UnzipperImpl unzipper = new UnzipperImpl();
-    List<Extraction> extractions = new ArrayList<>();
-    try {
-      List<PathAndStream> streams = new ArrayList<>();
-      for (String path : new PathParser().convertPathToFiles(file.getPath())) {
-        Path filePath = Paths.get(path);
-        final PathAndStream pathAndStream =
-            new PathAndStream(filePath, Files.newInputStream(filePath));
-        if (ArchiveDetection.isArchive(filePath.getFileName().toString())) {
-          var result =
-              unzipper.unzipAllFiles(
-                  pathAndStream, x -> x.startsWith("queries") && x.contains(".json"));
-          extractions.addAll(result);
-          for (Extraction extraction : result) {
-            streams.addAll(extraction.getPathAndStreams());
-          }
+  public Integer call() throws IOException, InterruptedException, ExecutionException {
+    try (var outputStream = Files.newOutputStream(outputFile.toPath())) {
+      var startMs = start.toEpochSecond(LocalTime.of(0, 0, 0, 0), ZoneOffset.UTC) * 1000;
+      var endMs = end.toEpochSecond(LocalTime.of(0, 0, 0, 0), ZoneOffset.UTC) * 1000;
+      var filter = new DateRangeQueryFilter(startMs, endMs);
 
-        } else {
-          streams.add(pathAndStream);
-        }
+      final Reporter reporter = new StreamWriterReporter(outputStream);
+      var reporters = new ArrayList<QueryReporter>();
+      final ConcurrentQueriesReporter concurrentQueriesReporter =
+          new ConcurrentQueriesReporter(this.window);
+      reporters.add(concurrentQueriesReporter);
+      final ConcurrentQueueReporter concurrentQueueReporter =
+          new ConcurrentQueueReporter(this.window);
+      reporters.add(concurrentQueueReporter);
+      final ConcurrentSchemaOpsReporter concurrentSchemaOpsReporter =
+          new ConcurrentSchemaOpsReporter(this.window);
+      reporters.add(concurrentSchemaOpsReporter);
+      final MaxMemoryQueriesReporter maxMemoryQueriesReporter =
+          new MaxMemoryQueriesReporter(this.limit);
+      reporters.add(maxMemoryQueriesReporter);
+      final MaxCPUQueriesReporter maxCPUQueriesReporter = new MaxCPUQueriesReporter(this.limit);
+      reporters.add(maxCPUQueriesReporter);
+      final MaxTimeReporter maxTimeReporter = new MaxTimeReporter(this.window);
+      reporters.add(maxTimeReporter);
+      final MemoryAllocatedReporter memoryAllocatedReporter =
+          new MemoryAllocatedReporter(this.window);
+      reporters.add(memoryAllocatedReporter);
+      final RequestCounterReporter requestCounterReporter = new RequestCounterReporter();
+      reporters.add(requestCounterReporter);
+      final RequestsByQueueReporter requestsByQueueReporter = new RequestsByQueueReporter();
+      reporters.add(requestsByQueueReporter);
+      final SlowestMetadataQueriesReporter slowestMetadataQueriesReporter =
+          new SlowestMetadataQueriesReporter(this.limit);
+      reporters.add(slowestMetadataQueriesReporter);
+      final SlowestPlanningQueriesReporter slowestPlanningQueriesReporter =
+          new SlowestPlanningQueriesReporter(this.limit);
+      reporters.add(slowestPlanningQueriesReporter);
+      final StartFinishReporter startFinishReporter = new StartFinishReporter();
+      reporters.add(startFinishReporter);
+      final TotalQueriesReporter totalQueriesReporter = new TotalQueriesReporter();
+      reporters.add(totalQueriesReporter);
+      var readArchive = new ReadArchive(filter);
+      var cpus = Runtime.getRuntime().availableProcessors() / 2;
+      if (file.getName().endsWith(".tgz") || file.getName().endsWith(".tar.gz")) {
+        readArchive.readTarGz(file.getAbsolutePath(), reporters, cpus);
+      } else if (file.getName().endsWith(".zip")) {
+        readArchive.readZip(file.getAbsolutePath(), reporters, cpus);
+      } else {
+        throw new RuntimeException(
+            "no support for files ending in %s"
+                .formatted(FilenameUtils.getExtension(file.getAbsolutePath())));
       }
-      try (var outputStream = Files.newOutputStream(outputFile.toPath())) {
-        final Reporter reporter = new StreamWriterReporter(outputStream);
-
-        new Exec()
-            .run(
-                streams.stream().toList(),
-                x ->
-                    new QueriesJsonHtmlReport(
-                        limit, x, complexityLimit, fallbackResolutionSeconds, start, end),
-                reporter);
-      }
-    } catch (Exception e) {
-      // just log error and return a generic exit code of 1
-      logger.log(Level.SEVERE, "unable to run executable", e);
-      return 1;
-    } finally {
-      for (Extraction extraction : extractions) {
-        try {
-          extraction.close();
-        } catch (IOException e) {
-          logger.warning("unable to close zip file: %s".formatted(e));
-        }
-      }
+      new Exec()
+          .run(
+              new QueriesJsonHtmlReport(
+                  this.window,
+                  concurrentQueriesReporter,
+                  concurrentQueueReporter,
+                  concurrentSchemaOpsReporter,
+                  maxMemoryQueriesReporter,
+                  maxCPUQueriesReporter,
+                  maxTimeReporter,
+                  memoryAllocatedReporter,
+                  requestCounterReporter,
+                  requestsByQueueReporter,
+                  slowestMetadataQueriesReporter,
+                  slowestPlanningQueriesReporter,
+                  startFinishReporter,
+                  totalQueriesReporter),
+              reporter);
+      return 0;
     }
-    return 0;
   }
 }

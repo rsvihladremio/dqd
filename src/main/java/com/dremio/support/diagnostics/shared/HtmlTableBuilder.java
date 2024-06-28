@@ -72,16 +72,26 @@ public class HtmlTableBuilder {
       for (final Collection<HtmlTableDataColumn<D, S>> detail : rows) {
         builder.append("<tr>");
         for (final HtmlTableDataColumn<D, S> column : detail) {
+          String classes = "";
+          if (column.limitText()) {
+            classes = " class=\"tooltip-pr\"";
+          }
           if (column.sortableData() != null) {
             // the data-sort attribute works with https://tofsjonas.github.io/sortable/ to use a
             // machine parseable sort column
             builder.append("<td data-sort=\"");
             builder.append(column.sortableData());
-            builder.append("\">");
+            builder.append("\"%s>".formatted(classes));
           } else {
-            builder.append("<td>");
+            builder.append("<td%s>".formatted(classes));
           }
-          builder.append(column.data());
+          if (column.limitText()) {
+            builder.append("<span class=\"tooltiptext-pr\">");
+            builder.append(column.data());
+            builder.append("</span>");
+          } else {
+            builder.append(column.data());
+          }
           builder.append("</td>\n");
         }
         builder.append("</tr>\n");
@@ -89,7 +99,6 @@ public class HtmlTableBuilder {
     }
     builder.append("</tbody>\n");
     builder.append("</table>\n");
-    builder.append("</div>");
     return builder.toString();
   }
 }

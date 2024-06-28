@@ -42,18 +42,16 @@ public class DQDWebServer {
   /**
    * Starts a web server
    *
-   * @param complexityLimit for the queries.json report
    * @param usageLogger
    * @throws IOException occurs when we are unable to read the index.html file
    */
-  public DQDWebServer(final long complexityLimit, final UsageLogger usageLogger)
-      throws IOException {
+  public DQDWebServer(final UsageLogger usageLogger) throws IOException {
     this(
         new GetIndex(),
         new PostProfile(usageLogger),
         new PostProfiles(usageLogger),
         new PostReproduction(usageLogger),
-        new PostQueriesJson(complexityLimit, usageLogger),
+        new PostQueriesJson(usageLogger),
         new ProfileJSONSimplified.ProfileHTTPEndpoint(usageLogger),
         new GetAbout());
   }
@@ -118,15 +116,14 @@ public class DQDWebServer {
   /**
    * preferred method of launching the service
    *
-   * @param complexityLimit     complexity limit to use
    * @param port                port that the web service runs on
    *
    * @throws Exception can throw thread exceptions and various exceptions that are spawned by javalin
    */
-  public static void start(final Long complexityLimit, final Integer port) throws Exception {
+  public static void start(final Integer port) throws Exception {
     final UsageLogger usageLogger;
     LOGGER.warning("logging usage to local logs");
     usageLogger = new LocalUsageLogger();
-    new DQDWebServer(complexityLimit, usageLogger).launch(port);
+    new DQDWebServer(usageLogger).launch(port);
   }
 }

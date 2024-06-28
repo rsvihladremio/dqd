@@ -11,25 +11,28 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.queriesjson.filters;
 
-public class DataPoints {
-  private long[] timestamps;
-  private long[] values;
+import com.dremio.support.diagnostics.queriesjson.Query;
 
-  public long[] getTimestamps() {
-    return timestamps;
+public class DateRangeQueryFilter implements QueryFilter {
+
+  private final long epochStart;
+  private final long epochEnd;
+
+  public DateRangeQueryFilter(long epochStart, long epochEnd) {
+    this.epochStart = epochStart;
+    this.epochEnd = epochEnd;
   }
 
-  public void setTimestamps(long[] timestamps) {
-    this.timestamps = timestamps;
-  }
-
-  public long[] getValues() {
-    return values;
-  }
-
-  public void setValues(long[] values) {
-    this.values = values;
+  @Override
+  public boolean isValid(Query q) {
+    if (q.getStart() == 0) {
+      return false;
+    }
+    if (q.getFinish() == 0) {
+      return false;
+    }
+    return q.getStart() < epochEnd && q.getStart() > epochStart;
   }
 }

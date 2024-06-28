@@ -11,21 +11,19 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.queriesjson.reporters;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.dremio.support.diagnostics.queriesjson.Query;
 
-import java.util.Arrays;
-import org.junit.jupiter.api.Test;
+public class TotalQueriesReporter implements QueryReporter {
+  private long count = 0;
 
-public class BucketTest {
+  public synchronized long getCount() {
+    return count;
+  }
 
-  @Test
-  public void testBucketGettersSetters() {
-    Bucket bucket = new Bucket();
-    bucket.setQueries(Arrays.asList(new SummaryQuery(), new SummaryQuery()));
-    bucket.setTimestamp(1L);
-    assertEquals(bucket.getTimestamp(), 1L);
-    assertEquals(bucket.getQueries().size(), 2);
+  @Override
+  public synchronized void parseRow(Query q) {
+    count++;
   }
 }

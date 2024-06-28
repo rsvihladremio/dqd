@@ -11,14 +11,15 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.shared;
 
-public class TooMuchComplexityException extends RuntimeException {
-  public TooMuchComplexityException(long complexityScore, long complexityLimit) {
-    super(
-        String.format(
-            "calculated complexity score of %d is too high by %.2f%% and it will take too much heap"
-                + " and too long to calculate this many queries, try less using less files",
-            complexityScore, (complexityScore * 100.0) / complexityLimit));
+public class TimeUtils {
+
+  public static long truncateEpochToSecond(long epoch) {
+    return epoch - (epoch % 1000);
+  }
+
+  public static long truncateEpoch(long epoch, long truncate) {
+    return epoch - (epoch % truncate);
   }
 }

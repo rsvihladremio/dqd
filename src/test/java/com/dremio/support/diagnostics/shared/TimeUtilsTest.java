@@ -11,21 +11,22 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.shared;
 
-import com.dremio.support.diagnostics.shared.*;
-import java.io.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** entry point for the queries-json command */
-public class Exec {
+import org.junit.jupiter.api.Test;
 
-  /**
-   * starts the queries-json command (has the following properties) - is
-   * multi-threaded -
-   *
-   * @param files filepath, directory, or comma separated list of files to read
-   */
-  public void run(final QueriesJsonHtmlReport report, final Reporter reporter) throws IOException {
-    reporter.output(report);
+public class TimeUtilsTest {
+  @Test
+  public void testTruncateToSecondWithZero() {
+    assertEquals(TimeUtils.truncateEpochToSecond(0), 0L);
+  }
+
+  @Test
+  public void testTruncateToSecond() {
+    assertEquals(TimeUtils.truncateEpochToSecond(1500), 1000L);
+    assertEquals(TimeUtils.truncateEpochToSecond(1000), 1000L);
+    assertEquals(TimeUtils.truncateEpochToSecond(1999), 1000L);
   }
 }

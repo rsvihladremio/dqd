@@ -13,7 +13,7 @@
  */
 package com.dremio.support.diagnostics.shared;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -27,60 +27,58 @@ class HumanTest {
 
   @Test
   void testGetHumanDurationFromMillisWithZero() {
-    assertThat(Human.getHumanDurationFromMillis(0L)).isEqualTo("0 millis");
+    assertEquals(Human.getHumanDurationFromMillis(0L), "0 millis");
   }
 
   @Test
   void testGetHumanDurationFromMillisOneMS() {
-    assertThat(Human.getHumanDurationFromMillis(1L)).isEqualTo("1 milli");
+    assertEquals(Human.getHumanDurationFromMillis(1L), "1 milli");
   }
 
   @Test
   void testGetHumanDurationFromMillisMoreThanOneMS() {
-    assertThat(Human.getHumanDurationFromMillis(2L)).isEqualTo("2 millis");
+    assertEquals(Human.getHumanDurationFromMillis(2L), "2 millis");
   }
 
   @Test
   void testGetHumanDurationFromMillisToSecondsWithOneSecond() {
-    assertThat(Human.getHumanDurationFromMillis(1000L)).isEqualTo("1 second");
+    assertEquals(Human.getHumanDurationFromMillis(1000L), "1 second");
   }
 
   @Test
   void testGetHumanDurationFromMillisToSecondsWithMoreThanOneSecond() {
-    assertThat(Human.getHumanDurationFromMillis(2010L))
-        .isEqualTo("2" + numberSeparator() + "01 seconds");
+    assertEquals(Human.getHumanDurationFromMillis(2010L), ("2" + numberSeparator() + "01 seconds"));
   }
 
   @Test
   void testGetHumanDurationFromMillisToMinutesOneMinute() {
-    assertThat(Human.getHumanDurationFromMillis(60000L)).isEqualTo("1 minute");
+    assertEquals(Human.getHumanDurationFromMillis(60000L), "1 minute");
   }
 
   @Test
   void testGetHumanDurationFromMillisToMinutesMoreThanOneMinute() {
-    assertThat(Human.getHumanDurationFromMillis(90000L))
-        .isEqualTo("1" + numberSeparator() + "50 minutes");
+    assertEquals(Human.getHumanDurationFromMillis(90000L), "1" + numberSeparator() + "50 minutes");
   }
 
   @Test
   void testGetHumanDurationFromMillisToHoursOneHour() {
-    assertThat(Human.getHumanDurationFromMillis(60000L * 60)).isEqualTo("1 hour");
+    assertEquals(Human.getHumanDurationFromMillis(60000L * 60), "1 hour");
   }
 
   @Test
   void testGetHumanDurationFromMillisToHoursMoreThanOneHour() {
-    assertThat(Human.getHumanDurationFromMillis(90000L * 60))
-        .isEqualTo("1" + numberSeparator() + "50 hours");
+    assertEquals(
+        Human.getHumanDurationFromMillis(90000L * 60), "1" + numberSeparator() + "50 hours");
   }
 
   @Test
   void testGetHumanDurationFromMillisToDaysOneDay() {
-    assertThat(Human.getHumanDurationFromMillis(60000L * 60 * 24)).isEqualTo("1 day");
+    assertEquals(Human.getHumanDurationFromMillis(60000L * 60 * 24), "1 day");
   }
 
   @Test
   void testGetHumanDurationFromMillisToDaysMoreThanOneDay() {
-    assertThat(Human.getHumanDurationFromMillis(90000L * 60 * 24))
-        .isEqualTo("1" + numberSeparator() + "50 days");
+    var msg = Human.getHumanDurationFromMillis(90000L * 60 * 24);
+    assertEquals(msg, "1" + numberSeparator() + "50 days");
   }
 }

@@ -265,15 +265,15 @@ public class ProfileJSONSimplified {
       return createHTMLPage(
           "Profile JSON Comparison",
           """
-              <div style="float: left">
-                <h4>Profile 1</h4>
-                %s
-              </div>
-              <div style="float: right">
-                <h4>Profile 2</h4>
-                %s
-              </div>
-              """
+          <div style="float: left">
+            <h4>Profile 1</h4>
+            %s
+          </div>
+          <div style="float: right">
+            <h4>Profile 2</h4>
+            %s
+          </div>
+          """
               .formatted(fragment1, fragment2));
     }
 
@@ -389,36 +389,36 @@ public class ProfileJSONSimplified {
           builder.generateTable(
               "findingsTable" + id, "Findings", Arrays.asList("num", "desc"), findings);
       return """
-          <div>%s</div>
-          <div>%s</div>
-          <div>%s</div>
-          """
+             <div>%s</div>
+             <div>%s</div>
+             <div>%s</div>
+             """
           .formatted(topLineSummaryHTMLTable, findingsHTMLTable, operatorHTMLTable);
     }
 
     private String createHTMLPage(String title, String content) {
       var provider = new JsLibraryTextProvider();
       return """
-          <!DOCTYPE html>
-          <html lang="en">
-            <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Profile Summary</title>
-              <script>%s</script>
-              <script>%s</script>
-              <style>%s</style>
-              <style>%s</style>
-              <script>%s</script>
-            </head>
-            <body>
-              <main>
-                <h1>%s</h1>
-                %s
-              </main>
-            </body>
-          </html>
-           """
+             <!DOCTYPE html>
+             <html lang="en">
+               <head>
+                 <meta charset="UTF-8">
+                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                 <title>Profile Summary</title>
+                 <script>%s</script>
+                 <script>%s</script>
+                 <style>%s</style>
+                 <style>%s</style>
+                 <script>%s</script>
+               </head>
+               <body>
+                 <main>
+                   <h1>%s</h1>
+                   %s
+                 </main>
+               </body>
+             </html>
+             """
           .formatted(
               provider.getCSVExportText(),
               provider.getSortableText(),
