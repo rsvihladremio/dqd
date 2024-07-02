@@ -256,12 +256,12 @@ public class HtmlProfileComparisonReport implements Report {
         + jsLibraryTextProvider.getSortableCSSText()
         + "</style>\n"
         + """
-        <style>
-          table, th, td {
-            border: 1px dotted black;
-          }
-        </style>
-        """
+          <style>
+            table, th, td {
+              border: 1px dotted black;
+            }
+          </style>
+          """
         + "</head>\n"
         + "<body>"
         + summary
