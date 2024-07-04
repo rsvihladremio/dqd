@@ -168,6 +168,28 @@ public class QueriesJsonHtmlReport implements Report {
   }
 
   private String getQueriesJSONHtml() {
+    long durationMillis = this.end.toEpochMilli() - this.start.toEpochMilli();
+    if (durationMillis < this.bucketSize) {
+      return """
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1"/>
+ <title>Queries.json report</title>
+ <meta name"description" content="report for queries.json">
+ <meta name="author" content="dremio">
+ <meta property="og:title" content="queries.json report">
+ <meta property="og:type" content="website">
+ <meta property="og:description" content="plotly generated graphs for queries.json">
+ <style>
+ <body>
+     <h3>bucket size is too large</h3>
+     <p>Selected bucket size of %d milliseconds is bigger than the range examined %d of miliseconds</p>
+ </body>
+"""
+          .formatted(this.bucketSize, durationMillis);
+    }
     final String totalCountsJs =
         new ConcurrentQueueWriter(this.bucketSize)
             .generate(
