@@ -53,6 +53,8 @@ import java.util.logging.Logger;
 public class QueriesJsonHtmlReport implements Report {
   private static final Logger LOGGER = Logger.getLogger(QueriesJsonHtmlReport.class.getName());
   private final JsLibraryTextProvider jsLibraryTextProvider = new JsLibraryTextProvider();
+  private Instant startFilter;
+  private Instant endFilter;
   private Instant start;
   private Instant end;
   private final long totalQueries;
@@ -69,12 +71,16 @@ public class QueriesJsonHtmlReport implements Report {
   private final Map<Long, Long> totalQueryCounts;
   private final Map<Long, Long> schemaOpsCounts;
   private final Map<String, Map<Long, Long>> queueCounts;
+  private final Collection<SearchedFile> filesSearched;
 
   private Collection<Query> mostMemoryQueries;
   private Collection<Query> mostCpuTimeQueries;
   private Map<Long, Long> maxPool;
 
   public QueriesJsonHtmlReport(
+      Collection<SearchedFile> filesSearched,
+      final Instant startFilter,
+      final Instant endFilter,
       long bucketSize,
       ConcurrentQueriesReporter concurrentQueriesReporter,
       ConcurrentQueueReporter concurrentQueueReporter,
@@ -90,6 +96,9 @@ public class QueriesJsonHtmlReport implements Report {
       StartFinishReporter startFinishReporter,
       TotalQueriesReporter totalQueriesReporter) {
     this(
+        filesSearched,
+        startFilter,
+        endFilter,
         bucketSize,
         totalQueriesReporter.getCount(),
         slowestPlanningQueriesReporter.getQueries(),
@@ -112,6 +121,9 @@ public class QueriesJsonHtmlReport implements Report {
   }
 
   public QueriesJsonHtmlReport(
+      final Collection<SearchedFile> filesSearched,
+      final Instant startFilter,
+      final Instant endFilter,
       final long bucketSize,
       final long totalQueries,
       final Collection<Query> slowestPlanning,
@@ -131,6 +143,9 @@ public class QueriesJsonHtmlReport implements Report {
       final Map<String, Map<Long, Long>> queueCounts,
       final Instant start,
       final Instant end) {
+    this.filesSearched = filesSearched;
+    this.startFilter = startFilter;
+    this.endFilter = endFilter;
     this.bucketSize = bucketSize;
     this.totalQueries = totalQueries;
     this.mostMemoryQueries = mostMemoryQueries;
@@ -391,7 +406,60 @@ public class QueriesJsonHtmlReport implements Report {
   @Override
   public String getText() {
     if (this.totalQueries == 0) {
-      return "no queries found";
+      var sb =
+          new StringBuilder(
+              """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1"/>
+ <title>Queries.json report</title>
+ <meta name"description" content="report for queries.json">
+ <meta name="author" content="dremio">
+ <meta property="og:title" content="queries.json report">
+ <meta property="og:type" content="website">
+ <meta property="og:description" content="plotly generated graphs for queries.json">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css" />
+</head>
+<body>
+<main>
+
+<h2>no queries found</h2>
+<h3>filters appled</h3>
+<table>
+  <thead>
+    <tr>
+      <th>filter name</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>start filter</td>
+      <td>%s</td>
+    </tr>
+    <tr>
+      <td>end filter</td>
+      <td>%s</td>
+    </tr>
+  </tbody>
+</table>
+"""
+                  .formatted(startFilter, endFilter));
+      sb.append("<h3>files searched</h3>");
+      sb.append(
+          "<table><thead><tr><th>file</th><th>queries filtered by date</th></tr></thead><tbody>");
+      for (SearchedFile s : filesSearched) {
+        sb.append("<tr><td>");
+        sb.append(s.name());
+        sb.append("</td><td>");
+        sb.append(s.filtered());
+        sb.append("</td></tr>");
+      }
+      sb.append("</tbody></table>");
+      sb.append("</main></body></html>");
+      return sb.toString();
     } else {
       LOGGER.info(() -> this.totalQueries + " queries parsed");
     }

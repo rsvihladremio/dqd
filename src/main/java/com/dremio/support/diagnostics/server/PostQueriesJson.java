@@ -13,8 +13,10 @@
  */
 package com.dremio.support.diagnostics.server;
 
+import com.dremio.support.diagnostics.queriesjson.QueriesJsonFileParser;
 import com.dremio.support.diagnostics.queriesjson.QueriesJsonHtmlReport;
 import com.dremio.support.diagnostics.queriesjson.ReadArchive;
+import com.dremio.support.diagnostics.queriesjson.SearchedFile;
 import com.dremio.support.diagnostics.queriesjson.filters.DateRangeQueryFilter;
 import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueriesReporter;
 import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueueReporter;
@@ -164,16 +166,42 @@ public class PostQueriesJson implements Handler {
           var buff = new byte[65536];
           IOUtils.copyLarge(is, os, buff);
         }
+        List<SearchedFile> filesSearched = new ArrayList<SearchedFile>();
         if (file.filename().endsWith(".tgz") || file.filename().endsWith(".tar.gz")) {
-          archive.readTarGz(tmpFile.toString(), reporters, cpus);
+          filesSearched = archive.readTarGz(tmpFile.toString(), reporters, cpus).stream().toList();
+        } else if (file.filename().endsWith(".tar.xz")) {
+          filesSearched = archive.readTarXz(tmpFile.toString(), reporters, cpus).stream().toList();
+        } else if (file.filename().endsWith(".tar.bzip2")) {
+          filesSearched =
+              archive.readTarBzip2(tmpFile.toString(), reporters, cpus).stream().toList();
+        } else if (file.filename().endsWith(".tar")) {
+          filesSearched = archive.readTar(tmpFile.toString(), reporters, cpus).stream().toList();
         } else if (file.filename().endsWith(".zip")) {
-          archive.readZip(tmpFile.toString(), reporters, cpus);
+          filesSearched = archive.readZip(tmpFile.toString(), reporters, cpus).stream().toList();
+        } else if (file.filename().endsWith(".gz")) {
+          filesSearched.add(archive.parseGzip(tmpFile.toString(), tmpFile, reporters));
+        } else if (file.filename().endsWith(".bzip2")) {
+          filesSearched.add(archive.parseBzip2(tmpFile.toString(), reporters));
+        } else if (file.filename().endsWith(".json")) {
+          filesSearched.add(
+              QueriesJsonFileParser.parseFile(
+                  tmpFile.toString(),
+                  is,
+                  reporters,
+                  new DateRangeQueryFilter(start.toEpochMilli(), end.toEpochMilli())));
         } else {
-          throw new RuntimeException("unknown extension for file " + file.filename().toString());
+          throw new RuntimeException(
+              "unknown extension for file "
+                  + file.filename()
+                  + " only supported extensions are .tar, .tar.gz, .tgz,"
+                  + " tar.xz, tar.bzip2, .bzip2, .gz, .zip and .json");
         }
         new com.dremio.support.diagnostics.queriesjson.Exec()
             .run(
                 new QueriesJsonHtmlReport(
+                    filesSearched,
+                    start,
+                    end,
                     window,
                     concurrentQueriesReporter,
                     concurrentQueueReporter,

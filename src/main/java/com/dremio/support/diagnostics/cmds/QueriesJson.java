@@ -14,8 +14,10 @@
 package com.dremio.support.diagnostics.cmds;
 
 import com.dremio.support.diagnostics.queriesjson.Exec;
+import com.dremio.support.diagnostics.queriesjson.QueriesJsonFileParser;
 import com.dremio.support.diagnostics.queriesjson.QueriesJsonHtmlReport;
 import com.dremio.support.diagnostics.queriesjson.ReadArchive;
+import com.dremio.support.diagnostics.queriesjson.SearchedFile;
 import com.dremio.support.diagnostics.queriesjson.filters.DateRangeQueryFilter;
 import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueriesReporter;
 import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueueReporter;
@@ -36,13 +38,14 @@ import com.dremio.support.diagnostics.shared.StreamWriterReporter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import org.apache.commons.io.FilenameUtils;
 import picocli.CommandLine;
 
 /**
@@ -168,20 +171,46 @@ public class QueriesJson implements Callable<Integer> {
       reporters.add(startFinishReporter);
       final TotalQueriesReporter totalQueriesReporter = new TotalQueriesReporter();
       reporters.add(totalQueriesReporter);
-      var readArchive = new ReadArchive(filter);
+      var archive = new ReadArchive(filter);
       var cpus = Runtime.getRuntime().availableProcessors() / 2;
-      if (file.getName().endsWith(".tgz") || file.getName().endsWith(".tar.gz")) {
-        readArchive.readTarGz(file.getAbsolutePath(), reporters, cpus);
-      } else if (file.getName().endsWith(".zip")) {
-        readArchive.readZip(file.getAbsolutePath(), reporters, cpus);
+      List<SearchedFile> filesSearched = new ArrayList<SearchedFile>();
+      if (file.toString().endsWith(".tgz") || file.toString().endsWith(".tar.gz")) {
+        filesSearched = archive.readTarGz(file.toString(), reporters, cpus).stream().toList();
+      } else if (file.toString().endsWith(".tar.xz")) {
+        filesSearched = archive.readTarXz(file.toString(), reporters, cpus).stream().toList();
+      } else if (file.toString().endsWith(".tar.bzip2")) {
+        filesSearched = archive.readTarBzip2(file.toString(), reporters, cpus).stream().toList();
+      } else if (file.toString().endsWith(".tar")) {
+        filesSearched = archive.readTar(file.toString(), reporters, cpus).stream().toList();
+      } else if (file.toString().endsWith(".zip")) {
+        filesSearched = archive.readZip(file.toString(), reporters, cpus).stream().toList();
+      } else if (file.toString().endsWith(".gz")) {
+        var searchedFile = archive.parseGzip(file.toString(), file.toPath(), reporters);
+        filesSearched.add(searchedFile);
+      } else if (file.toString().endsWith(".bzip2")) {
+        var searchedFile = archive.parseBzip2(file.toString(), reporters);
+        filesSearched.add(searchedFile);
+      } else if (file.toString().endsWith(".json")) {
+        try (var is = Files.newInputStream(file.toPath())) {
+          var searchedFile =
+              QueriesJsonFileParser.parseFile(
+                  file.toString(), is, reporters, new DateRangeQueryFilter(startMs, endMs));
+          filesSearched.add(searchedFile);
+        }
       } else {
-        throw new RuntimeException(
-            "no support for files ending in %s"
-                .formatted(FilenameUtils.getExtension(file.getAbsolutePath())));
+        System.out.println(
+            "unknown extension for file "
+                + file.toString()
+                + ": only supported extensions are .tar, .tar.gz, .tgz,"
+                + " tar.xz, tar.bzip2, .bzip2, .gz, .zip and .json");
+        return 1;
       }
       new Exec()
           .run(
               new QueriesJsonHtmlReport(
+                  filesSearched,
+                  Instant.ofEpochMilli(startMs),
+                  Instant.ofEpochMilli(endMs),
                   this.window,
                   concurrentQueriesReporter,
                   concurrentQueueReporter,
