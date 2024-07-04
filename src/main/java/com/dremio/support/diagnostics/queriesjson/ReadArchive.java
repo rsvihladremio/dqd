@@ -17,19 +17,13 @@ import com.dremio.support.diagnostics.queriesjson.filters.DateRangeQueryFilter;
 import com.dremio.support.diagnostics.queriesjson.reporters.QueryReporter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,6 +39,8 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
 /**
  * Parses zip and tgz files for queries.json files either unzipped or in a gzipped format
@@ -56,11 +52,6 @@ public class ReadArchive {
    * standard logging object
    */
   private static final Logger LOGGER = Logger.getLogger(ReadArchive.class.getName());
-
-  /**
-   * the object mapper that is used to read the Query object from a stream or string
-   */
-  private final ObjectMapper mapper = new ObjectMapper();
 
   /**
    * proivdes the filtering of dates so that we do not see data outside of the range requested
@@ -84,65 +75,21 @@ public class ReadArchive {
    * @param reports list of reporters to run against each query
    * @throws IOException when we're unable to read the gzip file
    */
-  private void parseGzip(String fileName, Path source, Collection<QueryReporter> reports)
+  public SearchedFile parseGzip(String fileName, Path source, Collection<QueryReporter> reports)
       throws IOException {
-
     try (var tmpFileStream = Files.newInputStream(source)) {
       GZIPInputStream gzis;
       try {
         gzis = new GZIPInputStream(tmpFileStream);
-        parseFile(fileName, gzis, reports);
+        return QueriesJsonFileParser.parseFile(fileName, gzis, reports, dateFilter);
       } catch (ZipException ex) {
         // not a valid gzip so no reason to continue
         LOGGER.warning("invalid gzip skipping entry %s".formatted(fileName));
-        return;
+        return new SearchedFile(0, 0, fileName);
+      } catch (Exception ex) {
+        LOGGER.log(Level.WARNING, "invalid gzip skipping entry %s".formatted(fileName), ex);
+        return new SearchedFile(0, 0, fileName);
       }
-    }
-  }
-
-  /**
-   * core logic for the file parse, use if the file is gzipped or if the file is a text file
-   * @param fileName original archive entry name used for reporting purposes only
-   * @param is input stream to parse
-   * @param reports list of reporters to run against each query
-   * @throws JsonMappingException comes from jackson when we're unable to map the string
-   * @throws JsonProcessingException also comes from jackson
-   * @throws IOException when we're unable to read the input stream
-   */
-  private void parseFile(String fileName, InputStream is, Collection<QueryReporter> reports)
-      throws JsonMappingException, JsonProcessingException, IOException {
-    LOGGER.info("parsing entry %s".formatted(fileName));
-    try (BufferedReader r = new BufferedReader(new InputStreamReader(is))) {
-      final Instant startTime = Instant.now();
-      String line;
-      // count is only for reporting how many queries were in each file
-      long count = 0;
-      long filtered = 0;
-      // we read each line in the file and if the line is null we exit.
-      while (null != (line = r.readLine())) {
-        // standard jackson code to read an object from a string
-        // at some point we should consider the stream api to see if we can get more parsing speed
-        final Query query = mapper.readValue(line, Query.class);
-        if (!dateFilter.isValid(query)) {
-          filtered++;
-          continue;
-        }
-        // we don't count filtered queries for the main count
-        count++;
-        for (QueryReporter reporter : reports) {
-          reporter.parseRow(query);
-        }
-      }
-      final long totalFiltered = filtered;
-      final long totalCount = count;
-      final Instant endTime = Instant.now();
-      // we log the parse duration for performance improvements
-      final Duration totalTime = Duration.between(startTime, endTime);
-      LOGGER.info(
-          () ->
-              String.format(
-                  "%d queries parsed (%d filtered by -s and -e flags) in %s millis from file %s",
-                  totalCount, totalFiltered, totalTime.toMillis(), fileName));
     }
   }
 
@@ -153,10 +100,10 @@ public class ReadArchive {
    * @param reports list of reporters to run against each query
    * @throws IOException when we're unable to read the text file
    */
-  private void parseJSON(String fileName, Path source, Collection<QueryReporter> reports)
+  private SearchedFile parseJSON(String fileName, Path source, Collection<QueryReporter> reports)
       throws IOException {
     try (var tmpFileStream = Files.newInputStream(source)) {
-      parseFile(fileName, tmpFileStream, reports);
+      return QueriesJsonFileParser.parseFile(fileName, tmpFileStream, reports, dateFilter);
     }
   }
 
@@ -177,13 +124,14 @@ public class ReadArchive {
    * @param is archive containing queries.json to reach from
    * @param reporters reporters to run against each query that is parsed, they will need to be thread safe if threads > 1
    * @param threads concurrent number of files that will be parsed
+   * @return files that were searched in the archive
    * @throws JsonMappingException from jackson if there is an invalid row
    * @throws JsonProcessingException from jackon
    * @throws IOException if there is a file we cannot read or we cannot write the temp files
    * @throws InterruptedException if there is a threading problem
    * @throws ExecutionException if there is a thread pool issue
    */
-  private void parse(
+  private Collection<SearchedFile> parse(
       @SuppressWarnings("rawtypes") final ArchiveInputStream is,
       final Collection<QueryReporter> reporters,
       final int threads)
@@ -195,6 +143,7 @@ public class ReadArchive {
 
     final ExecutorService executorService = Executors.newFixedThreadPool(threads);
     final List<Future<?>> futures = new ArrayList<>();
+    final List<SearchedFile> entries = new ArrayList<>();
     ArchiveEntry entry;
     while (null != (entry = is.getNextEntry())) {
       // Check if entry is a directory
@@ -204,9 +153,10 @@ public class ReadArchive {
           // gzips need to be handled with a different code path
           final String entryName = entry.getName();
           final boolean isMaybeGZip = entryName.endsWith("gz");
+          final boolean isBzip2 = entryName.endsWith("bzip2");
           final boolean isJson = entryName.endsWith("json");
           // only parse files gzips and json files
-          if (isJson || isMaybeGZip) {
+          if (isJson || isMaybeGZip || isBzip2) {
             final Path tmpFile = Files.createTempFile("oa-", "-ta");
             // this is probably hacky but I've not yet figured out a way to write a temp file in
             // java and
@@ -220,7 +170,7 @@ public class ReadArchive {
               LOGGER.warning(
                   "found file of only %d bytes, not usable. Skipping entry %s"
                       .formatted(size, entryName));
-              return;
+              return entries;
             }
             final String fileName = entry.getName();
             // use the thread pool to run the parsing, this allows faster throughput and uses
@@ -230,23 +180,28 @@ public class ReadArchive {
                     () -> {
                       try {
                         if (isGzip) {
-                          parseGzip(fileName, tmpFile, reporters);
+                          entries.add(parseGzip(fileName, tmpFile, reporters));
                         } else if (isJson) {
-                          parseJSON(fileName, tmpFile, reporters);
+                          entries.add(parseJSON(fileName, tmpFile, reporters));
+                        } else if (isBzip2) {
+                          entries.add(parseBzip2(fileName, reporters));
                         } else if (isMaybeGZip) {
+                          entries.add(new SearchedFile(0, 0, fileName));
                           LOGGER.finer(
                               () ->
                                   "skipped file %s as it has a gzip extension but is not a gzip"
                                       .formatted(entryName));
                         } else {
-                          // since we have guarded above to only parse gzips and json files
+                          entries.add(new SearchedFile(0, 0, fileName));
+                          // since we have guarded above to only parse gzips, bzip2 and json files
                           // reaching this
                           // means we have left a critical bug in the code and allowed another
                           // file type into
                           // this code block with addressing it.
                           LOGGER.severe("this is a bug and this code should not be reached");
                         }
-                      } catch (IOException e) {
+                      } catch (IOException | InterruptedException | ExecutionException e) {
+                        entries.add(new SearchedFile(0, 0, fileName));
                         LOGGER.log(
                             Level.SEVERE,
                             "error parsing file %s: %s".formatted(fileName, e.getMessage()),
@@ -269,6 +224,7 @@ public class ReadArchive {
     // this is probably not necessary but leaving it in case there is other code added later that
     // needs it.
     executorService.shutdown();
+    return entries;
   }
 
   /**
@@ -276,17 +232,106 @@ public class ReadArchive {
    * @param targz the gzipped tarball to read
    * @param reporters reporters to run against each query that is parsed, they will need to be thread safe if threads > 1
    * @param threads concurrent number of files that will be parsed
+   * @return files that were searched
    * @throws IOException if there is a file we cannot read or we cannot write the temp files
    * @throws InterruptedException if there is a threading problem
    * @throws ExecutionException if there is a thread pool issue
    */
-  public void readTarGz(String targz, Collection<QueryReporter> reporters, int threads)
+  public Collection<SearchedFile> readTarGz(
+      String targz, Collection<QueryReporter> reporters, int threads)
       throws IOException, InterruptedException, ExecutionException {
     try (FileInputStream st = new FileInputStream(targz)) {
       try (GZIPInputStream gzi = new GZIPInputStream(st)) {
         try (TarArchiveInputStream tarInput = new TarArchiveInputStream(gzi)) {
-          parse(tarInput, reporters, threads);
+          return parse(tarInput, reporters, threads);
         }
+      }
+    }
+  }
+
+  /**
+   * logic to read a tar.bzip2 file
+   * @param tarBzip2 the bzip2 tarball to read
+   * @param reporters reporters to run against each query that is parsed, they will need to be thread safe if threads > 1
+   * @param threads concurrent number of files that will be parsed
+   * @return files that were searched
+   * @throws IOException if there is a file we cannot read or we cannot write the temp files
+   * @throws InterruptedException if there is a threading problem
+   * @throws ExecutionException if there is a thread pool issue
+   */
+  public Collection<SearchedFile> readTarBzip2(
+      String tarBzip2, Collection<QueryReporter> reporters, int threads)
+      throws IOException, InterruptedException, ExecutionException {
+    try (FileInputStream st = new FileInputStream(tarBzip2)) {
+      try (BZip2CompressorInputStream xzi = new BZip2CompressorInputStream(st)) {
+        try (TarArchiveInputStream tarInput = new TarArchiveInputStream(xzi)) {
+          return parse(tarInput, reporters, threads);
+        }
+      }
+    }
+  }
+
+  /**
+   * logic to read a tar.xz file
+   * @param tarXz the gzipped tarball to read
+   * @param reporters reporters to run against each query that is parsed, they will need to be thread safe if threads > 1
+   * @param threads concurrent number of files that will be parsed
+   * @return files that were searched
+   * @throws IOException if there is a file we cannot read or we cannot write the temp files
+   * @throws InterruptedException if there is a threading problem
+   * @throws ExecutionException if there is a thread pool issue
+   */
+  public Collection<SearchedFile> readTarXz(
+      String tarXv, Collection<QueryReporter> reporters, int threads)
+      throws IOException, InterruptedException, ExecutionException {
+    try (FileInputStream st = new FileInputStream(tarXv)) {
+      try (XZCompressorInputStream xzi = new XZCompressorInputStream(st)) {
+        try (TarArchiveInputStream tarInput = new TarArchiveInputStream(xzi)) {
+          return parse(tarInput, reporters, threads);
+        }
+      }
+    }
+  }
+
+  /**
+   * logic to read a bzip2 file
+   * @param bzip2 the bzip2 file to read
+   * @param reporters reporters to run against each query that is parsed, they will need to be thread safe if threads > 1
+   * @param threads concurrent number of files that will be parsed
+   * @returns a searched file with the file name, number of records parsed and records filtered
+   * @throws IOException if there is a file we cannot read or we cannot write the temp files
+   * @throws InterruptedException if there is a threading problem
+   * @throws ExecutionException if there is a thread pool issue
+   */
+  public SearchedFile parseBzip2(String bzip2, Collection<QueryReporter> reporters)
+      throws IOException, InterruptedException, ExecutionException {
+    try (FileInputStream st = new FileInputStream(bzip2)) {
+      try (BZip2CompressorInputStream bzi = new BZip2CompressorInputStream(st)) {
+        return QueriesJsonFileParser.parseFile(bzip2, bzi, reporters, dateFilter);
+      } catch (Exception ex) {
+        // not a valid bzip2 so no reason to continue
+        LOGGER.log(Level.WARNING, "invalid bzip2 skipping entry %s".formatted(bzip2), ex);
+        return new SearchedFile(0, 0, bzip2);
+      }
+    }
+  }
+
+  /**
+   * logic to read a tar file
+   * @param tar the tarball to read
+   * @param reporters reporters to run against each query that is parsed, they will need to be thread safe if threads > 1
+   * @param threads concurrent number of files that will be parsed
+   * @return files that were searched
+   * @throws IOException if there is a file we cannot read or we cannot write the temp files
+   * @throws InterruptedException if there is a threading problem
+   * @throws ExecutionException if there is a thread pool issue
+   */
+  public Collection<SearchedFile> readTar(
+      String tar, Collection<QueryReporter> reporters, int threads)
+      throws IOException, InterruptedException, ExecutionException {
+    try (FileInputStream st = new FileInputStream(tar)) {
+      try (TarArchiveInputStream tarInput = new TarArchiveInputStream(st)) {
+        return parse(tarInput, reporters, threads);
       }
     }
   }
@@ -316,15 +361,17 @@ public class ReadArchive {
    * @param zipFilePath the path to the zip file containing queries.json.gz or queries.json files
    * @param reporters reporters to run against each query that is parsed, they will need to be thread safe if threads > 1
    * @param threads concurrent number of files that will be parsed
+   * @return files that were searched
    * @throws IOException if there is a file we cannot read or we cannot write the temp files
    * @throws InterruptedException if there is a threading problem
    * @throws ExecutionException if there is a thread pool issue
    */
-  public void readZip(String zipFilePath, Collection<QueryReporter> reports, int threads)
+  public Collection<SearchedFile> readZip(
+      String zipFilePath, Collection<QueryReporter> reports, int threads)
       throws IOException, InterruptedException, ExecutionException {
     try (ZipArchiveInputStream zipFile =
         new ZipArchiveInputStream(new FileInputStream(zipFilePath))) {
-      parse(zipFile, reports, threads);
+      return parse(zipFile, reports, threads);
     }
   }
 }
