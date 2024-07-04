@@ -183,12 +183,14 @@ public class PostQueriesJson implements Handler {
         } else if (file.filename().endsWith(".bzip2")) {
           filesSearched.add(archive.parseBzip2(tmpFile.toString(), reporters));
         } else if (file.filename().endsWith(".json")) {
-          filesSearched.add(
-              QueriesJsonFileParser.parseFile(
-                  tmpFile.toString(),
-                  is,
-                  reporters,
-                  new DateRangeQueryFilter(start.toEpochMilli(), end.toEpochMilli())));
+          try (final InputStream newInputStream = Files.newInputStream(tmpFile)) {
+            filesSearched.add(
+                QueriesJsonFileParser.parseFile(
+                    tmpFile.toString(),
+                    newInputStream,
+                    reporters,
+                    new DateRangeQueryFilter(start.toEpochMilli(), end.toEpochMilli())));
+          }
         } else {
           throw new RuntimeException(
               "unknown extension for file "
