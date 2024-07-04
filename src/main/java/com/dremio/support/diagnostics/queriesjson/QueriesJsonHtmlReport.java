@@ -182,11 +182,15 @@ public class QueriesJsonHtmlReport implements Report {
  <meta property="og:title" content="queries.json report">
  <meta property="og:type" content="website">
  <meta property="og:description" content="plotly generated graphs for queries.json">
- <style>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css" />
+ </head>
  <body>
-     <h3>bucket size is too large</h3>
-     <p>Selected bucket size of %d milliseconds is bigger than the range examined %d of miliseconds</p>
+     <main>
+      <h3>bucket size is too large</h3>
+      <p>Selected bucket size of %d milliseconds is bigger than the range examined %d of miliseconds. Try again with a bucket size of 1 second</p>
+     </main>
  </body>
+ </html>
 """
           .formatted(this.bucketSize, durationMillis);
     }
@@ -237,6 +241,9 @@ public class QueriesJsonHtmlReport implements Report {
   <meta property="og:type" content="website">
   <meta property="og:description" content="plotly generated graphs for queries.json">
   <style>
+     html {
+      scroll-behavior: smooth;
+    }
      table {
      table-layout:fixed; width: 100%%;
      }
@@ -267,10 +274,6 @@ public class QueriesJsonHtmlReport implements Report {
        cursor: pointer;
        white-space: initial;
        transition: height 0.2s ease-in-out;
-     }
-     section:not(:target):not(#home),
-     section:target~#home {
-         display: none;
      }
 
      /* Style the navbar */
@@ -310,7 +313,6 @@ public class QueriesJsonHtmlReport implements Report {
      .sticky + .content {
        padding-top: 100px;
      }
-
  </style>
   <style>
     %s
@@ -330,6 +332,7 @@ public class QueriesJsonHtmlReport implements Report {
   <script>
     %s
   </script>
+
  </head>
  <body>
  <div id="navbar">
@@ -337,20 +340,22 @@ public class QueriesJsonHtmlReport implements Report {
    <h3 style="color: white" >queries.json report</h3>
    </div>
    <div style="float:right;">
-   <a class="nav-link" href="#summary">Summary</a>
-   <a class="nav-link" href="#outliers">Outliers</a>
-   <a class="nav-link" href="#usage">Usage</a>
+   <a class="nav-link" href="#summary-section">Summary</a>
+   <a class="nav-link" href="#outliers-section">Outliers</a>
+   <a class="nav-link" href="#usage-section">Usage</a>
    </div>
  </div>
  <main class="content">
- <section id="summary">
+ <section id="summary-section">
+ <h3>Summary</h3>
  <div class="summary-page">
   <div>%s</div>
   <div>%s</div>
   <div>%s</div>
  </div>
  </section>
- <section id="outliers">
+ <section id="outliers-section">
+ <h3>Outliers</h3>
  <div class="content-page">
   <div>%s</div>
   <div>%s</div>
@@ -358,34 +363,14 @@ public class QueriesJsonHtmlReport implements Report {
   <div>%s</div>
  </div>
  </section>
- <section id="usage">
+ <section id="usage-section">
+ <h3>Usage</h3>
  %s
  %s
  %s
  </section>
  </main>
  <script>
- function setActive(){
-   const activeLinks = document.getElementsByClassName("active-link");
-     for (let i = 0; i < activeLinks.length; i++) {
-       activeLinks[i].classList.remove("active-link");
-     }
-     const navs = document.getElementsByClassName("nav-link");
-     for (let i = 0; i < navs.length; i++) {
-       let e = navs[i];
-       if (window.location.hash === e.hash){
-         window.scrollTo(0, 0);
-         e.classList.add("active-link");
-       }
-     }
- }
- addEventListener("hashchange", (event) => setActive());
-
- if(window.location.hash) {
-     setActive();
- } else {
-     window.location.href= "#summary";
- }
    // When the user scrolls the page, execute myFunction
    window.onscroll = function() {stickNav()};
 
@@ -404,6 +389,24 @@ public class QueriesJsonHtmlReport implements Report {
      }
    }
  </script>
+<script>
+    const sections = document.querySelectorAll('section');
+    const links = document.querySelectorAll('a.nav-link');
+
+    window.addEventListener('scroll', () => {
+        let scrollPosition = window.scrollY + 80;
+        sections.forEach(section => {
+            if (scrollPosition >= section.offsetTop) {
+                links.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (section.getAttribute('id') === link.getAttribute('href').substring(1)) {
+                        link.classList.add('active-link');
+                    }
+                });
+            }
+        });
+    });
+  </script>
  </body>
 """
         .formatted(
