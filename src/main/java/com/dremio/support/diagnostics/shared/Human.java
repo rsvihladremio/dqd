@@ -14,6 +14,7 @@
 package com.dremio.support.diagnostics.shared;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 
 /**
  * Provides utility methods for making more easily understandable the output of
@@ -59,31 +60,31 @@ public class Human {
       return "1 day";
     }
     if (durationMillis > DAY) {
-      return String.format("%.2f days", (double) durationMillis / DAY);
+      return String.format(Locale.US, "%.2f days", (double) durationMillis / DAY);
     }
     if (durationMillis == HOUR) {
       return "1 hour";
     }
     if (durationMillis > HOUR) {
-      return String.format("%.2f hours", (double) durationMillis / HOUR);
+      return String.format(Locale.US, "%.2f hours", (double) durationMillis / HOUR);
     }
     if (durationMillis == MINUTE) {
       return "1 minute";
     }
     if (durationMillis > MINUTE) {
-      return String.format("%.2f minutes", (double) durationMillis / MINUTE);
+      return String.format(Locale.US, "%.2f minutes", (double) durationMillis / MINUTE);
     }
     if (durationMillis == SECOND) {
       return "1 second";
     }
     if (durationMillis > SECOND) {
-      return String.format("%.2f seconds", (double) durationMillis / SECOND);
+      return String.format(Locale.US, "%.2f seconds", (double) durationMillis / SECOND);
     }
     long oneMillisecond = 1;
     if (durationMillis == oneMillisecond) {
       return "1 milli";
     }
-    return String.format("%s millis", durationMillis);
+    return String.format(Locale.US, "%s millis", durationMillis);
   }
 
   /**

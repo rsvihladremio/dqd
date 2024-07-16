@@ -24,35 +24,58 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class MaxCPUTimeWriter {
-  public static String generate(final Collection<Query> top) {
+public class FailedQueriesWriter {
+  public static String generateTable(final Collection<Query> failedQueries, final long limit) {
     final StringBuilder builder = new StringBuilder();
-    if (top.isEmpty()) {
-      builder.append("<h2>Max Execution CPU Time</h2>");
+    if (failedQueries.isEmpty()) {
+      builder.append("<h2>First ");
+      builder.append(limit);
+      builder.append(" Failed Queries</h2>");
       builder.append("<p>No Queries Found</p>");
       return builder.toString();
     }
     var htmlBuilder = new HtmlTableBuilder();
     Collection<Collection<HtmlTableDataColumn<String, Number>>> rows = new ArrayList<>();
-    top.forEach(
+    failedQueries.forEach(
         x ->
             rows.add(
                 asList(
                     col(x.getQueryId()),
                     col(Dates.format(Instant.ofEpochMilli(x.getStart())), x.getStart()),
+                    col(Dates.format(Instant.ofEpochMilli(x.getFinish())), x.getFinish()),
                     col(
                         Human.getHumanDurationFromMillis(x.getFinish() - x.getStart()),
                         x.getFinish() - x.getStart()),
+                    col(x.getQueryText(), true),
+                    col(x.getOutcomeReason(), true),
+                    col(x.getQueueName()),
+                    col(Human.getHumanDurationFromMillis(x.getPendingTime()), x.getPendingTime()),
                     col(
-                        Human.getHumanDurationFromMillis(x.getExecutionCpuTimeNs() / 1_000_000),
-                        x.getExecutionCpuTimeNs()),
-                    col(x.getQueryText(), true))));
+                        Human.getHumanDurationFromMillis(x.getNormalizedMetadataRetrieval()),
+                        x.getNormalizedMetadataRetrieval()),
+                    col(Human.getHumanDurationFromMillis(x.getPlanningTime()), x.getPlanningTime()),
+                    col(Human.getHumanDurationFromMillis(x.getQueuedTime()), x.getQueuedTime()),
+                    col(
+                        Human.getHumanDurationFromMillis(x.getRunningTime()),
+                        x.getRunningTime()))));
 
     builder.append(
         htmlBuilder.generateTable(
-            "maxCPUTimeTable",
-            "Max Execution CPU Time",
-            asList("query id", "start", "query duration", "cpu time", "query"),
+            "firstFailedQueries",
+            "First " + limit + " Failed Queries",
+            asList(
+                "query id",
+                "start",
+                "end",
+                "query duration",
+                "query",
+                "outcome reason",
+                "queue name",
+                "pending",
+                "metadata retrieval",
+                "planning",
+                "queued",
+                "running"),
             rows));
     return builder.toString();
   }

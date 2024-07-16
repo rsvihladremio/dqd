@@ -15,15 +15,9 @@ package com.dremio.support.diagnostics.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import org.junit.jupiter.api.Test;
 
 class HumanTest {
-  private String numberSeparator() {
-    DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
-    return String.valueOf(formatter.getDecimalFormatSymbols().getDecimalSeparator());
-  }
 
   @Test
   void testGetHumanDurationFromMillisWithZero() {
@@ -47,7 +41,7 @@ class HumanTest {
 
   @Test
   void testGetHumanDurationFromMillisToSecondsWithMoreThanOneSecond() {
-    assertEquals(Human.getHumanDurationFromMillis(2010L), ("2" + numberSeparator() + "01 seconds"));
+    assertEquals(Human.getHumanDurationFromMillis(2010L), ("2.01 seconds"));
   }
 
   @Test
@@ -57,7 +51,7 @@ class HumanTest {
 
   @Test
   void testGetHumanDurationFromMillisToMinutesMoreThanOneMinute() {
-    assertEquals(Human.getHumanDurationFromMillis(90000L), "1" + numberSeparator() + "50 minutes");
+    assertEquals(Human.getHumanDurationFromMillis(90000L), "1.50 minutes");
   }
 
   @Test
@@ -67,8 +61,7 @@ class HumanTest {
 
   @Test
   void testGetHumanDurationFromMillisToHoursMoreThanOneHour() {
-    assertEquals(
-        Human.getHumanDurationFromMillis(90000L * 60), "1" + numberSeparator() + "50 hours");
+    assertEquals(Human.getHumanDurationFromMillis(90000L * 60), "1.50 hours");
   }
 
   @Test
@@ -79,6 +72,6 @@ class HumanTest {
   @Test
   void testGetHumanDurationFromMillisToDaysMoreThanOneDay() {
     var msg = Human.getHumanDurationFromMillis(90000L * 60 * 24);
-    assertEquals(msg, "1" + numberSeparator() + "50 days");
+    assertEquals(msg, "1.50 days");
   }
 }
