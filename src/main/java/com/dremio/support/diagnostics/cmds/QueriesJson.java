@@ -19,20 +19,7 @@ import com.dremio.support.diagnostics.queriesjson.QueriesJsonHtmlReport;
 import com.dremio.support.diagnostics.queriesjson.ReadArchive;
 import com.dremio.support.diagnostics.queriesjson.SearchedFile;
 import com.dremio.support.diagnostics.queriesjson.filters.DateRangeQueryFilter;
-import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueueReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentSchemaOpsReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MaxCPUQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MaxMemoryQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MaxTimeReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MemoryAllocatedReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.QueryReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.RequestCounterReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.RequestsByQueueReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.SlowestMetadataQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.SlowestPlanningQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.StartFinishReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.TotalQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.reporters.*;
 import com.dremio.support.diagnostics.shared.Reporter;
 import com.dremio.support.diagnostics.shared.StreamWriterReporter;
 import java.io.File;
@@ -171,6 +158,9 @@ public class QueriesJson implements Callable<Integer> {
       reporters.add(startFinishReporter);
       final TotalQueriesReporter totalQueriesReporter = new TotalQueriesReporter();
       reporters.add(totalQueriesReporter);
+      final FailedQueriesReporter failedQueriesReporter = new FailedQueriesReporter(limit);
+      reporters.add(failedQueriesReporter);
+
       var archive = new ReadArchive(filter);
       var cpus = Runtime.getRuntime().availableProcessors() / 2;
       List<SearchedFile> filesSearched = new ArrayList<SearchedFile>();
@@ -224,7 +214,9 @@ public class QueriesJson implements Callable<Integer> {
                   slowestMetadataQueriesReporter,
                   slowestPlanningQueriesReporter,
                   startFinishReporter,
-                  totalQueriesReporter),
+                  totalQueriesReporter,
+                  failedQueriesReporter,
+                  limit),
               reporter);
       return 0;
     }

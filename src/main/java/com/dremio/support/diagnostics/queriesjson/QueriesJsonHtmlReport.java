@@ -16,29 +16,8 @@ package com.dremio.support.diagnostics.queriesjson;
 import static com.dremio.support.diagnostics.shared.HtmlTableDataColumn.col;
 import static java.util.Arrays.asList;
 
-import com.dremio.support.diagnostics.queriesjson.html.ConcurrentQueueWriter;
-import com.dremio.support.diagnostics.queriesjson.html.Dates;
-import com.dremio.support.diagnostics.queriesjson.html.MaxCPUTimeWriter;
-import com.dremio.support.diagnostics.queriesjson.html.MaxMemoryQueriesWriter;
-import com.dremio.support.diagnostics.queriesjson.html.MaxTimeWriter;
-import com.dremio.support.diagnostics.queriesjson.html.MemoryAllocatedWriter;
-import com.dremio.support.diagnostics.queriesjson.html.RequestByQueueWriter;
-import com.dremio.support.diagnostics.queriesjson.html.RequestCounterWriter;
-import com.dremio.support.diagnostics.queriesjson.html.SlowestMetadataRetrievalWriter;
-import com.dremio.support.diagnostics.queriesjson.html.SlowestPlanningWriter;
-import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentQueueReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.ConcurrentSchemaOpsReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MaxCPUQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MaxMemoryQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MaxTimeReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.MemoryAllocatedReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.RequestCounterReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.RequestsByQueueReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.SlowestMetadataQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.SlowestPlanningQueriesReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.StartFinishReporter;
-import com.dremio.support.diagnostics.queriesjson.reporters.TotalQueriesReporter;
+import com.dremio.support.diagnostics.queriesjson.html.*;
+import com.dremio.support.diagnostics.queriesjson.reporters.*;
 import com.dremio.support.diagnostics.shared.HtmlTableBuilder;
 import com.dremio.support.diagnostics.shared.HtmlTableDataColumn;
 import com.dremio.support.diagnostics.shared.Human;
@@ -53,10 +32,12 @@ import java.util.logging.Logger;
 public class QueriesJsonHtmlReport implements Report {
   private static final Logger LOGGER = Logger.getLogger(QueriesJsonHtmlReport.class.getName());
   private final JsLibraryTextProvider jsLibraryTextProvider = new JsLibraryTextProvider();
-  private Instant startFilter;
-  private Instant endFilter;
-  private Instant start;
-  private Instant end;
+  private final Collection<Query> failedQueries;
+  private final long problematicQueryLimit;
+  private final Instant startFilter;
+  private final Instant endFilter;
+  private final Instant start;
+  private final Instant end;
   private final long totalQueries;
   private final Map<String, Long> requestCounterMap;
   private final Map<String, Long> requestsByQueue;
@@ -73,28 +54,30 @@ public class QueriesJsonHtmlReport implements Report {
   private final Map<String, Map<Long, Long>> queueCounts;
   private final Collection<SearchedFile> filesSearched;
 
-  private Collection<Query> mostMemoryQueries;
-  private Collection<Query> mostCpuTimeQueries;
-  private Map<Long, Long> maxPool;
+  private final Collection<Query> mostMemoryQueries;
+  private final Collection<Query> mostCpuTimeQueries;
+  private final Map<Long, Long> maxPool;
 
   public QueriesJsonHtmlReport(
       Collection<SearchedFile> filesSearched,
       final Instant startFilter,
       final Instant endFilter,
       long bucketSize,
-      ConcurrentQueriesReporter concurrentQueriesReporter,
-      ConcurrentQueueReporter concurrentQueueReporter,
-      ConcurrentSchemaOpsReporter concurrentSchemaOpsReporter,
-      MaxMemoryQueriesReporter maxMemoryQueriesReporter,
-      MaxCPUQueriesReporter maxCpuQueriesReporter,
-      MaxTimeReporter maxTimeReporter,
-      MemoryAllocatedReporter memoryAllocatedReporter,
-      RequestCounterReporter requestCounterReporter,
-      RequestsByQueueReporter requestsByQueueReporter,
-      SlowestMetadataQueriesReporter slowestMetadataQueriesReporter,
-      SlowestPlanningQueriesReporter slowestPlanningQueriesReporter,
-      StartFinishReporter startFinishReporter,
-      TotalQueriesReporter totalQueriesReporter) {
+      final ConcurrentQueriesReporter concurrentQueriesReporter,
+      final ConcurrentQueueReporter concurrentQueueReporter,
+      final ConcurrentSchemaOpsReporter concurrentSchemaOpsReporter,
+      final MaxMemoryQueriesReporter maxMemoryQueriesReporter,
+      final MaxCPUQueriesReporter maxCpuQueriesReporter,
+      final MaxTimeReporter maxTimeReporter,
+      final MemoryAllocatedReporter memoryAllocatedReporter,
+      final RequestCounterReporter requestCounterReporter,
+      final RequestsByQueueReporter requestsByQueueReporter,
+      final SlowestMetadataQueriesReporter slowestMetadataQueriesReporter,
+      final SlowestPlanningQueriesReporter slowestPlanningQueriesReporter,
+      final StartFinishReporter startFinishReporter,
+      final TotalQueriesReporter totalQueriesReporter,
+      final FailedQueriesReporter failedQueriesReporter,
+      final long problematicQueryLimit) {
     this(
         filesSearched,
         startFilter,
@@ -117,7 +100,9 @@ public class QueriesJsonHtmlReport implements Report {
         concurrentSchemaOpsReporter.getBuckets(),
         concurrentQueueReporter.getQueueBucketCounts(),
         Instant.ofEpochMilli(startFinishReporter.getStart()),
-        Instant.ofEpochMilli(startFinishReporter.getFinish()));
+        Instant.ofEpochMilli(startFinishReporter.getFinish()),
+        failedQueriesReporter.getFailedQueries(),
+        problematicQueryLimit);
   }
 
   public QueriesJsonHtmlReport(
@@ -142,7 +127,9 @@ public class QueriesJsonHtmlReport implements Report {
       final Map<Long, Long> schemaOpsCounts,
       final Map<String, Map<Long, Long>> queueCounts,
       final Instant start,
-      final Instant end) {
+      final Instant end,
+      final Collection<Query> failedQueries,
+      final long problematicQueryLimit) {
     this.filesSearched = filesSearched;
     this.startFilter = startFilter;
     this.endFilter = endFilter;
@@ -165,6 +152,8 @@ public class QueriesJsonHtmlReport implements Report {
     this.totalQueryCounts = totalQueryCounts;
     this.schemaOpsCounts = schemaOpsCounts;
     this.queueCounts = queueCounts;
+    this.failedQueries = failedQueries;
+    this.problematicQueryLimit = problematicQueryLimit;
   }
 
   private String getQueriesJSONHtml() {
@@ -187,7 +176,7 @@ public class QueriesJsonHtmlReport implements Report {
  <body>
      <main>
       <h3>bucket size is too large</h3>
-      <p>Selected bucket size of %d milliseconds is bigger than the range examined %d of miliseconds. Try again with a bucket size of 1 second</p>
+      <p>Selected bucket size of %d milliseconds is bigger than the range examined %d of milliseconds. Try again with a bucket size of 1 second</p>
      </main>
  </body>
  </html>
@@ -227,7 +216,8 @@ public class QueriesJsonHtmlReport implements Report {
     final String maxMemoryQueries =
         MaxMemoryQueriesWriter.generateMaxMemoryAllocated(mostMemoryQueries);
     final String maxCpuTime = MaxCPUTimeWriter.generate(mostCpuTimeQueries);
-
+    final String failedQueries =
+        FailedQueriesWriter.generateTable(this.failedQueries, this.problematicQueryLimit);
     return """
  <!DOCTYPE html>
  <html lang="en">
@@ -343,6 +333,7 @@ public class QueriesJsonHtmlReport implements Report {
    <a class="nav-link" href="#summary-section">Summary</a>
    <a class="nav-link" href="#outliers-section">Outliers</a>
    <a class="nav-link" href="#usage-section">Usage</a>
+   <a class="nav-link" href="#failures-section">Failures</a>
    </div>
  </div>
  <main class="content">
@@ -367,6 +358,10 @@ public class QueriesJsonHtmlReport implements Report {
  <h3>Usage</h3>
  %s
  %s
+ %s
+ </section>
+ <section id="failures-section">
+ <h3>Failures</h3>
  %s
  </section>
  </main>
@@ -425,7 +420,8 @@ public class QueriesJsonHtmlReport implements Report {
             maxMemoryQueries,
             totalCountsJs,
             maxValuesJs,
-            memoryAllocatedJs);
+            memoryAllocatedJs,
+            failedQueries);
   }
 
   @Override
