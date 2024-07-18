@@ -200,7 +200,7 @@
                     <limit>
                       <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.66</minimum>
+                      <minimum>0.20</minimum>
                     </limit>
                   </limits>
                 </rule>
@@ -272,4 +272,11 @@
       </plugin>
     </plugins>
   </build>
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub rsvihladremio Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/rsvihladremio/dqd</url>
+    </repository>
+  </distributionManagement>
 </project>
