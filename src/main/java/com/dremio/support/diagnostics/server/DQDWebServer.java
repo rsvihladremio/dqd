@@ -91,25 +91,24 @@ public class DQDWebServer {
    *
    */
   public void launch(int port) {
-    try (var app =
+    var app =
         Javalin.create(
                 config -> {
                   config.http.maxRequestSize = 10 * 1000000; // 10mb
                 })
-            .start(port)) {
-      app.get("/", this.getIndex);
-      app.post("/profile", this.postProfile);
-      app.post("/profiles", this.postProfiles);
-      app.post("/queriesjson", this.postQueriesJson);
-      app.post("/reproduction", this.postReproduction);
-      app.post("/simple-profile", this.postSimpleProfile);
-      app.get("/about.json", this.getAbout);
-      Runtime.getRuntime().addShutdownHook(new Thread(app::stop));
-      try {
-        Thread.currentThread().join();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
+            .start(port);
+    app.get("/", this.getIndex);
+    app.post("/profile", this.postProfile);
+    app.post("/profiles", this.postProfiles);
+    app.post("/queriesjson", this.postQueriesJson);
+    app.post("/reproduction", this.postReproduction);
+    app.post("/simple-profile", this.postSimpleProfile);
+    app.get("/about.json", this.getAbout);
+    Runtime.getRuntime().addShutdownHook(new Thread(app::stop));
+    try {
+      Thread.currentThread().join();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 
