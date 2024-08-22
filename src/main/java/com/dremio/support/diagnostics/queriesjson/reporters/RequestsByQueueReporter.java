@@ -18,6 +18,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * reports total counts by queue
+ */
 public class RequestsByQueueReporter implements QueryReporter {
   private final Map<String, Long> requestsByQueue = new HashMap<>();
 
@@ -26,6 +29,11 @@ public class RequestsByQueueReporter implements QueryReporter {
     return Collections.unmodifiableMap(requestsByQueue);
   }
 
+  /**
+   * thread safe row parsing of the query. totals up requests by queue name
+   *
+   * @param q Query object
+   */
   @Override
   public synchronized void parseRow(Query q) {
     final String queueName = q.getQueueName();

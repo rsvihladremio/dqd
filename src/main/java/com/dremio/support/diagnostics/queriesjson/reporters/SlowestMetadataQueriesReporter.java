@@ -18,21 +18,38 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * finds the slowest metadata refresh queries
+ */
 public class SlowestMetadataQueriesReporter implements QueryReporter {
   private final long limit;
   private List<Query> queries = new ArrayList<>();
 
+  /**
+   *
+   * @return the top <limit> queries ordered by getNormalizedMetadataRefresh() desc
+   */
   public synchronized List<Query> getQueries() {
     return queries;
   }
 
+  /**
+   * finds the queries with the slowest medata refresh
+   *
+   * @param limit how many results to show
+   */
   public SlowestMetadataQueriesReporter(final long limit) {
     this.limit = limit;
   }
 
+  /**
+   * @param q Query object to report on. thread safe. Is normalized to handle the change from
+   * metadataRefreshTime and metadataRefresh
+   */
   @Override
   public synchronized void parseRow(final Query q) {
     queries.add(q);
+    // we need to new up the ArrayList<>() as .toList() makes the array unmodifiable.
     queries =
         new ArrayList<>(
             queries.stream()

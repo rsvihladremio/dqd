@@ -14,9 +14,13 @@
 package com.dremio.support.diagnostics.queriesjson.reporters;
 
 import com.dremio.support.diagnostics.queriesjson.Query;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Summarizes requests by outcome across the entire dataset
+ */
 public class RequestCounterReporter implements QueryReporter {
 
   private final Map<String, Long> requestCounterMap = new HashMap<>();
@@ -26,12 +30,15 @@ public class RequestCounterReporter implements QueryReporter {
    *
    * @return map of request counts
    */
-  public Map<String, Long> getRequestCounterMap() {
-    return requestCounterMap;
+  public synchronized Map<String, Long> getRequestCounterMap() {
+    return Collections.unmodifiableMap(requestCounterMap);
   }
 
+  /**
+   * thread safe row parsing, totals up requests by outcome
+   */
   @Override
-  public void parseRow(final Query q) {
+  public synchronized void parseRow(final Query q) {
     final String outcome = q.getOutcome();
     if (requestCounterMap.containsKey(outcome)) {
       final Long total = requestCounterMap.get(outcome);

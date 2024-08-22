@@ -4,6 +4,8 @@ Diagnosis all the reasons why things are broken.
 
 NOTE: THIS IS NOT ASSOCIATED WITH DREMIO AND IS NOT AN OFFICIAL SOFTWARE PRODUCT OF DREMIO
 
+NOTE: Developer documentation is located [under the docs folder](docs/developer.md)
+
 ## Get started
 
 1. download file from releases

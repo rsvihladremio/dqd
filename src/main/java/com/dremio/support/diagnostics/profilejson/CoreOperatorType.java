@@ -13,6 +13,12 @@
  */
 package com.dremio.support.diagnostics.profilejson;
 
+/**
+ * inspired from https://github.com/dremio/dremio-oss/blob/12d7a954966ee5782921a4fbe32cc4568cbf631b/protocol/src/main/protobuf/UserBitShared.proto#L714-L783
+ * should stay in sync with that file as new versions come out.
+ *
+ * Describes the type of operator.
+ */
 public enum CoreOperatorType {
   SINGLE_SENDER, // => 0,
   BROADCAST_SENDER, // => 1,
