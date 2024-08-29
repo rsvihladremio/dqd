@@ -13,7 +13,7 @@ dqd server
 ```
 navigate to http://localhost:8080
 
-## CLI usage 
+## CLI usage
 
 This provides an alternative to the web ui and some people prefer it as a general workflow. The same reports are generated in the CLI as in the web server.
 
