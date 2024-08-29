@@ -4,13 +4,7 @@ Diagnosis all the reasons why things are broken.
 
 NOTE: THIS IS NOT ASSOCIATED WITH DREMIO AND IS NOT AN OFFICIAL SOFTWARE PRODUCT OF DREMIO
 
-## Get started
-
-1. download file from releases
-2. unzip and copy to a location in your path (or just remember where you want to run it from)
-3. run one of the following commands depending on your use case
-
-### On Mac/Linux using homebrew
+### Get started On Mac/Linux using homebrew
 
 ```bash
 brew tap rsvihladremio/tools
