@@ -50,7 +50,6 @@ Analyzes a tarball of queries.json file and make recommendations.
 
 ## Errata
 
-* Hosted at https://dqd.drem.io
 * How to install [here](#how-to-install)
 * How to use [here](#how-to-use)
 
