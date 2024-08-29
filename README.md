@@ -47,11 +47,6 @@ Analyzes a tarball of queries.json file and make recommendations.
 
 	dqd queries-json queries.json.gz
 
-## Errata
-
-* How to install [here](#how-to-install)
-* How to use [here](#how-to-use)
-
 ## Goals
 
 * One-stop shop for all tools
