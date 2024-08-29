@@ -10,13 +10,18 @@ NOTE: THIS IS NOT ASSOCIATED WITH DREMIO AND IS NOT AN OFFICIAL SOFTWARE PRODUCT
 2. unzip and copy to a location in your path (or just remember where you want to run it from)
 3. run one of the following commands depending on your use case
 
-### Run the web UI
+### On Mac/Linux using homebrew
 
-Similar to the CLI but more rich with interactive graphs, starts on port 8080
-
-	dqd server
-
+```bash
+brew tap rsvihladremio/tools
+brew install dqd
+dqd server
+```
 navigate to http://localhost:8080
+
+## CLI usage 
+
+This provides an alternative to the web ui and some people prefer it as a general workflow. The same reports are generated in the CLI as in the web server.
 
 ### Analyze profile.json
 
