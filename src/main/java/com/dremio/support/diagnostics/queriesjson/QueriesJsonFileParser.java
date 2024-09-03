@@ -76,7 +76,7 @@ public class QueriesJsonFileParser {
               String.format(
                   "%d queries parsed (%d filtered by -s and -e flags) in %s millis from file %s",
                   totalCount, totalFiltered, totalTime.toMillis(), fileName));
-      return new SearchedFile(totalFiltered, totalCount, fileName);
+      return new SearchedFile(totalFiltered, totalCount, fileName, "");
     }
   }
 }

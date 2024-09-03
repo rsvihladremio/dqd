@@ -16,18 +16,15 @@ package com.dremio.support.diagnostics.queriesjson.reporters;
 import com.dremio.support.diagnostics.queriesjson.Query;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class MemoryAllocatedReporter implements QueryReporter {
 
   private final Map<Long, Double> memoryCounter = new HashMap<>();
 
-  public Map<Long, Double> getMemoryCounter() {
+  public synchronized Map<Long, Double> getMemoryCounter() {
     return memoryCounter;
   }
 
-  private final Lock lock = new ReentrantLock();
   private final long bucketSize;
 
   public MemoryAllocatedReporter(final long bucketSize) {
@@ -35,21 +32,16 @@ public class MemoryAllocatedReporter implements QueryReporter {
   }
 
   private void update(Long bucket, Double value) {
-    lock.lock();
-    try {
-      if (memoryCounter.containsKey(bucket)) {
-        double prev = memoryCounter.get(bucket);
-        memoryCounter.put(bucket, value + prev);
-      } else {
-        memoryCounter.put(bucket, value);
-      }
-    } finally {
-      lock.unlock();
+    if (memoryCounter.containsKey(bucket)) {
+      double prev = memoryCounter.get(bucket);
+      memoryCounter.put(bucket, value + prev);
+    } else {
+      memoryCounter.put(bucket, value);
     }
   }
 
   @Override
-  public void parseRow(Query q) {
+  public synchronized void parseRow(Query q) {
     Long startBucket = q.getStart() - (q.getStart() % this.bucketSize);
     final Long finishBucket = q.getFinish() - (q.getFinish() % this.bucketSize);
     if (startBucket < finishBucket) {

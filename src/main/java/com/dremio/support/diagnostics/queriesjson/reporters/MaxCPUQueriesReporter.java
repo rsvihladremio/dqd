@@ -21,7 +21,7 @@ import java.util.List;
 public class MaxCPUQueriesReporter implements QueryReporter {
   private List<Query> queries = new ArrayList<>();
 
-  public List<Query> getQueries() {
+  public synchronized List<Query> getQueries() {
     return queries;
   }
 

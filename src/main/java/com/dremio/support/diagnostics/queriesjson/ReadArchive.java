@@ -85,10 +85,11 @@ public class ReadArchive {
       } catch (ZipException ex) {
         // not a valid gzip so no reason to continue
         LOGGER.warning("invalid gzip skipping entry %s".formatted(fileName));
-        return new SearchedFile(0, 0, fileName);
-      } catch (Exception ex) {
-        LOGGER.log(Level.WARNING, "invalid gzip skipping entry %s".formatted(fileName), ex);
-        return new SearchedFile(0, 0, fileName);
+        return new SearchedFile(0, 0, fileName, ex.getMessage());
+        // } catch (Exception ex) {
+        //   LOGGER.log(Level.WARNING, "unhandled exception: processing entry
+        // %s".formatted(fileName), ex);
+        //   return new SearchedFile(0, 0, fileName, ex.getMessage());
       }
     }
   }
@@ -186,13 +187,13 @@ public class ReadArchive {
                         } else if (isBzip2) {
                           entries.add(parseBzip2(fileName, reporters));
                         } else if (isMaybeGZip) {
-                          entries.add(new SearchedFile(0, 0, fileName));
+                          entries.add(new SearchedFile(0, 0, fileName, ""));
                           LOGGER.finer(
                               () ->
                                   "skipped file %s as it has a gzip extension but is not a gzip"
                                       .formatted(entryName));
                         } else {
-                          entries.add(new SearchedFile(0, 0, fileName));
+                          entries.add(new SearchedFile(0, 0, fileName, ""));
                           // since we have guarded above to only parse gzips, bzip2 and json files
                           // reaching this
                           // means we have left a critical bug in the code and allowed another
@@ -201,7 +202,7 @@ public class ReadArchive {
                           LOGGER.severe("this is a bug and this code should not be reached");
                         }
                       } catch (IOException | InterruptedException | ExecutionException e) {
-                        entries.add(new SearchedFile(0, 0, fileName));
+                        entries.add(new SearchedFile(0, 0, fileName, e.getMessage()));
                         LOGGER.log(
                             Level.SEVERE,
                             "error parsing file %s: %s".formatted(fileName, e.getMessage()),
@@ -311,7 +312,7 @@ public class ReadArchive {
       } catch (Exception ex) {
         // not a valid bzip2 so no reason to continue
         LOGGER.log(Level.WARNING, "invalid bzip2 skipping entry %s".formatted(bzip2), ex);
-        return new SearchedFile(0, 0, bzip2);
+        return new SearchedFile(0, 0, bzip2, ex.getMessage());
       }
     }
   }

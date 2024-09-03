@@ -17,17 +17,14 @@ import com.dremio.support.diagnostics.queriesjson.Query;
 import com.dremio.support.diagnostics.shared.TimeUtils;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ConcurrentSchemaOpsReporter implements QueryReporter {
   private Map<Long, Long> buckets = new HashMap<>();
 
-  public Map<Long, Long> getBuckets() {
+  public synchronized Map<Long, Long> getBuckets() {
     return buckets;
   }
 
-  private Lock lock = new ReentrantLock();
   private final long window;
 
   public ConcurrentSchemaOpsReporter(long window) {
@@ -35,7 +32,7 @@ public class ConcurrentSchemaOpsReporter implements QueryReporter {
   }
 
   @Override
-  public void parseRow(Query q) {
+  public synchronized void parseRow(Query q) {
     if (q.getQueryText() != null
         && (q.getQueryText().startsWith("DROP")
             || q.getQueryText().startsWith("CREATE")
@@ -48,14 +45,12 @@ public class ConcurrentSchemaOpsReporter implements QueryReporter {
       // therefore the finish will not added to the counts map
       long finish = TimeUtils.truncateEpoch(q.getFinish(), this.window) + this.window;
       while (start < finish) {
-        lock.lock();
         if (buckets.containsKey(start)) {
           long i = buckets.get(start);
           buckets.put(start, i++);
         } else {
           buckets.put(start, 1L);
         }
-        lock.unlock();
         start += this.window;
       }
     }

@@ -13,6 +13,7 @@
  */
 package com.dremio.support.diagnostics.server;
 
+import com.dremio.support.diagnostics.shared.DQDVersion;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +24,7 @@ public class GetAbout implements Handler {
   private final String version;
 
   public GetAbout() {
-    if (this.getClass().getPackage() != null
-        && this.getClass().getPackage().getImplementationVersion() != null) {
-      version = this.getClass().getPackage().getImplementationVersion();
-    } else {
-      version = "v0.7.13";
-    }
+    this.version = DQDVersion.getVersion();
   }
 
   @Override
