@@ -11,6 +11,15 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.queriesjson;
+package com.dremio.support.diagnostics.shared;
 
-public record SearchedFile(long filtered, long parsed, String name, String errorText) {}
+public class DQDVersion {
+  public static String getVersion() {
+    if (DQDVersion.class.getPackage() != null
+        && DQDVersion.class.getPackage().getImplementationVersion() != null) {
+      return DQDVersion.class.getPackage().getImplementationVersion();
+    } else {
+      return "v0.12.0";
+    }
+  }
+}

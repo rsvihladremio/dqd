@@ -18,6 +18,7 @@ import static java.util.Arrays.asList;
 
 import com.dremio.support.diagnostics.queriesjson.html.*;
 import com.dremio.support.diagnostics.queriesjson.reporters.*;
+import com.dremio.support.diagnostics.shared.DQDVersion;
 import com.dremio.support.diagnostics.shared.HtmlTableBuilder;
 import com.dremio.support.diagnostics.shared.HtmlTableDataColumn;
 import com.dremio.support.diagnostics.shared.Human;
@@ -26,6 +27,7 @@ import com.dremio.support.diagnostics.shared.Report;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -103,6 +105,52 @@ public class QueriesJsonHtmlReport implements Report {
         Instant.ofEpochMilli(startFinishReporter.getFinish()),
         failedQueriesReporter.getFailedQueries(),
         problematicQueryLimit);
+  }
+
+  private String getFailedParses() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(
+        """
+    <h3>filters appled</h3>
+<table>
+  <thead>
+    <tr>
+      <th>filter name</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>start filter</td>
+      <td>%s</td>
+    </tr>
+    <tr>
+      <td>end filter</td>
+      <td>%s</td>
+    </tr>
+  </tbody>
+</table>
+
+"""
+            .formatted(startFilter, endFilter));
+    sb.append("<h3>files searched</h3>");
+    sb.append(
+        "<table><thead><tr><th>file</th><th>queries parsed</th><th>queries filtered by"
+            + " date</th><td>error</th></tr></thead><tbody>");
+    for (SearchedFile s : filesSearched) {
+      sb.append("<tr><td>");
+      sb.append(s.name());
+      sb.append("</td><td>");
+      sb.append(s.parsed());
+      sb.append("</td><td>");
+      sb.append(s.filtered());
+      sb.append("</td><td class=\"tooltip-pr\">");
+      sb.append(s.errorText());
+      sb.append("</td></tr>");
+    }
+    sb.append("</tbody></table>");
+    sb.append("</main></body></html>");
+    return sb.toString();
   }
 
   public QueriesJsonHtmlReport(
@@ -218,6 +266,7 @@ public class QueriesJsonHtmlReport implements Report {
     final String maxCpuTime = MaxCPUTimeWriter.generate(mostCpuTimeQueries);
     final String failedQueries =
         FailedQueriesWriter.generateTable(this.failedQueries, this.problematicQueryLimit);
+    final String failedParses = this.getFailedParses();
     return """
  <!DOCTYPE html>
  <html lang="en">
@@ -334,6 +383,7 @@ public class QueriesJsonHtmlReport implements Report {
    <a class="nav-link" href="#outliers-section">Outliers</a>
    <a class="nav-link" href="#usage-section">Usage</a>
    <a class="nav-link" href="#failures-section">Failures</a>
+    <a class="nav-link" href="#report-section">Report Debugging</a>
    </div>
  </div>
  <main class="content">
@@ -362,6 +412,10 @@ public class QueriesJsonHtmlReport implements Report {
  </section>
  <section id="failures-section">
  <h3>Failures</h3>
+ %s
+ </section>
+<section id="report-section">
+ <h3>Report Debugging</h3>
  %s
  </section>
  </main>
@@ -421,7 +475,8 @@ public class QueriesJsonHtmlReport implements Report {
             totalCountsJs,
             maxValuesJs,
             memoryAllocatedJs,
-            failedQueries);
+            failedQueries,
+            failedParses);
   }
 
   @Override
@@ -506,6 +561,12 @@ public class QueriesJsonHtmlReport implements Report {
         asList(
             col("average queries per second"),
             col(String.format("%.2f", (this.totalQueries / durationSeconds)))));
+    rows.add(asList(col("dqd version"), col(DQDVersion.getVersion())));
+    long failedFileCount = filesSearched.stream().filter(x -> !"".equals(x.errorText())).count();
+    rows.add(
+        asList(
+            col("invalid/total files"),
+            col(String.format(Locale.US, "%d/%d", failedFileCount, filesSearched.size()))));
     var htmlBuilder = new HtmlTableBuilder();
     builder.append(
         htmlBuilder.generateTable(

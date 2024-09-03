@@ -17,8 +17,6 @@ import com.dremio.support.diagnostics.queriesjson.Query;
 import com.dremio.support.diagnostics.shared.TimeUtils;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class MaxTimeReporter implements QueryReporter {
   private final Map<Long, Long> pending = new HashMap<>();
@@ -29,33 +27,27 @@ public class MaxTimeReporter implements QueryReporter {
 
   private final Map<Long, Long> metadata = new HashMap<>();
 
-  public Map<Long, Long> getMetadata() {
+  public synchronized Map<Long, Long> getMetadata() {
     return metadata;
   }
 
   private final Map<Long, Long> queued = new HashMap<>();
 
-  public Map<Long, Long> getQueued() {
+  public synchronized Map<Long, Long> getQueued() {
     return queued;
   }
 
   private final Map<Long, Long> planning = new HashMap<>();
 
-  public Map<Long, Long> getPlanning() {
+  public synchronized Map<Long, Long> getPlanning() {
     return planning;
   }
 
   private final Map<Long, Long> maxPool = new HashMap<>();
 
-  public Map<Long, Long> getMaxPool() {
+  public synchronized Map<Long, Long> getMaxPool() {
     return maxPool;
   }
-
-  private final Lock pendingLock = new ReentrantLock();
-  private final Lock metadataLock = new ReentrantLock();
-  private final Lock queuedLock = new ReentrantLock();
-  private final Lock planningLock = new ReentrantLock();
-  private final Lock maxPoolLock = new ReentrantLock();
 
   private final long window;
 
@@ -63,22 +55,17 @@ public class MaxTimeReporter implements QueryReporter {
     this.window = window;
   }
 
-  private void setMax(long measure, Long start, Map<Long, Long> values, Lock lock) {
-    lock.lock();
-    try {
-      if (values.containsKey(start)) {
-        long i = values.get(start);
-        values.put(start, Math.max(measure, i));
-      } else {
-        values.put(start, measure);
-      }
-    } finally {
-      lock.unlock();
+  private void setMax(long measure, Long start, Map<Long, Long> values) {
+    if (values.containsKey(start)) {
+      long i = values.get(start);
+      values.put(start, Math.max(measure, i));
+    } else {
+      values.put(start, measure);
     }
   }
 
   @Override
-  public void parseRow(Query q) {
+  public synchronized void parseRow(Query q) {
     long start = TimeUtils.truncateEpoch(q.getStart(), this.window);
     // we add a second to make sure we count the last bucket. this value when
     // reached will stop the
@@ -86,11 +73,11 @@ public class MaxTimeReporter implements QueryReporter {
     // therefore the finish will not added to the maps
     long finish = TimeUtils.truncateEpoch(q.getFinish(), this.window) + this.window;
     while (start < finish) {
-      setMax(q.getPendingTime(), start, pending, pendingLock);
-      setMax(q.getNormalizedMetadataRetrieval(), start, metadata, metadataLock);
-      setMax(q.getQueuedTime(), start, queued, queuedLock);
-      setMax(q.getPlanningTime(), start, planning, planningLock);
-      setMax(q.getPoolWaitTime(), start, maxPool, maxPoolLock);
+      setMax(q.getPendingTime(), start, pending);
+      setMax(q.getNormalizedMetadataRetrieval(), start, metadata);
+      setMax(q.getQueuedTime(), start, queued);
+      setMax(q.getPlanningTime(), start, planning);
+      setMax(q.getPoolWaitTime(), start, maxPool);
       start += this.window;
     }
   }

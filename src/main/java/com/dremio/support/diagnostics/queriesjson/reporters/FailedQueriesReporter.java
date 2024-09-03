@@ -29,7 +29,7 @@ public class FailedQueriesReporter implements QueryReporter {
   }
 
   @Override
-  public void parseRow(Query q) {
+  public synchronized void parseRow(Query q) {
     if ("FAILED".equals(q.getOutcome())) {
       failedQueries.add(q);
       // we want to get the oldest based on start time LIMIT failed queries
@@ -41,7 +41,7 @@ public class FailedQueriesReporter implements QueryReporter {
     }
   }
 
-  public Collection<Query> getFailedQueries() {
+  public synchronized Collection<Query> getFailedQueries() {
     return this.failedQueries;
   }
 }

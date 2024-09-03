@@ -26,12 +26,12 @@ public class RequestCounterReporter implements QueryReporter {
    *
    * @return map of request counts
    */
-  public Map<String, Long> getRequestCounterMap() {
+  public synchronized Map<String, Long> getRequestCounterMap() {
     return requestCounterMap;
   }
 
   @Override
-  public void parseRow(final Query q) {
+  public synchronized void parseRow(final Query q) {
     final String outcome = q.getOutcome();
     if (requestCounterMap.containsKey(outcome)) {
       final Long total = requestCounterMap.get(outcome);
