@@ -19,7 +19,7 @@ public class DQDVersion {
         && DQDVersion.class.getPackage().getImplementationVersion() != null) {
       return DQDVersion.class.getPackage().getImplementationVersion();
     } else {
-      return "v0.12.1";
+      return "v0.12.2";
     }
   }
 }

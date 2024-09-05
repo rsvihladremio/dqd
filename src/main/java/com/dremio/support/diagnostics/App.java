@@ -20,10 +20,12 @@ import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 
+import com.dremio.support.diagnostics.cmds.IOStat;
 import com.dremio.support.diagnostics.cmds.ProfileJson;
 import com.dremio.support.diagnostics.cmds.QueriesJson;
 import com.dremio.support.diagnostics.cmds.Repro;
 import com.dremio.support.diagnostics.cmds.Server;
+import com.dremio.support.diagnostics.cmds.Top;
 import com.dremio.support.diagnostics.simple.ProfileJSONSimplified;
 import java.util.Locale;
 import java.util.logging.Handler;
@@ -45,6 +47,8 @@ import picocli.CommandLine.ScopeType;
       QueriesJson.class,
       Repro.class,
       Server.class,
+      Top.class,
+      IOStat.class
     })
 public class App {
   private static final int maxVerbosity = 3;

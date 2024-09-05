@@ -21,8 +21,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+@Command(
+    name = "iostat",
+    description =
+        "analyze an iostat file generated with the following flags iostat -x -d -c -t 1 <duration>",
+    subcommands = CommandLine.HelpCommand.class)
 public class IOStat implements Callable<Integer> {
 
   /**
