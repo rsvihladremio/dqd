@@ -21,8 +21,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+@Command(
+    name = "top",
+    description =
+        "analyze an threaded top file generated with the following command LINES=100 top -H -n 120"
+            + " -p 1 -d 2 -bw",
+    subcommands = CommandLine.HelpCommand.class)
 public class Top implements Callable<Integer> {
 
   /**

@@ -104,7 +104,7 @@ public class TopExec {
  <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>IO Stats report</title>
+  <title>Threaded Top report</title>
   <meta name"description" content="report for top">
   <meta name="author" content="dremio">
   <meta property="og:title" content="top report">
