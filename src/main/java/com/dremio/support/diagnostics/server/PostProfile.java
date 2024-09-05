@@ -46,15 +46,16 @@ public class PostProfile implements Handler {
       throw new IllegalArgumentException(
           "must upload  only one file but had %d".formatted(uploadedFiles.size()));
     }
-    final var fields = ctx.formParamMap();
-    final boolean showPlanDetails = fields.containsKey("show_plan_details");
-    final boolean showConvertToRel = fields.containsKey("show_convert_to_rel");
     var file = uploadedFiles.get(0);
 
     try (InputStream is = file.content()) {
       ProfileProvider profileProvider =
           ArgSetup.getProfileProvider(new PathAndStream(Paths.get(file.filename()), is));
       ProfileJSON p = profileProvider.getProfile();
+
+      // now we just always enable this
+      final boolean showPlanDetails = true;
+      final boolean showConvertToRel = true;
       final String text =
           new SingleProfileJsonHtmlReport(showPlanDetails, showConvertToRel, p).getText();
       ctx.html(text);

@@ -57,10 +57,9 @@ public class PostProfiles implements Handler {
       }
       var profile1 = files.get(0);
       var profile2 = files.get(1);
-      var fields = ctx.formParamMap();
-      logger.info(() -> String.format("Received fields: %s", fields));
-      final boolean showPlanComparison = fields.containsKey("show_plan_comparison");
-      final boolean showConvertToRel = fields.containsKey("show_convert_to_rel");
+      // hard coded now
+      final boolean showPlanComparison = true;
+      final boolean showConvertToRel = true;
       logger.warning("parsing profile 1");
       ProfileProvider profile1Provider =
           ArgSetup.getProfileProvider(

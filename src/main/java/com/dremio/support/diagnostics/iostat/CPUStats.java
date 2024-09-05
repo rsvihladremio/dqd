@@ -11,15 +11,11 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dremio.support.diagnostics.shared;
+package com.dremio.support.diagnostics.iostat;
 
-public class DQDVersion {
-  public static String getVersion() {
-    if (DQDVersion.class.getPackage() != null
-        && DQDVersion.class.getPackage().getImplementationVersion() != null) {
-      return DQDVersion.class.getPackage().getImplementationVersion();
-    } else {
-      return "v0.12.1";
-    }
+public record CPUStats(
+    float user, float nice, float system, float iowait, float steal, float idle) {
+  public float getNonIOUsage() {
+    return user + system + nice + steal;
   }
 }
