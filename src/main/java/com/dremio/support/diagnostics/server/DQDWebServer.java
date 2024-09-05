@@ -38,6 +38,8 @@ public class DQDWebServer {
   private final Handler postQueriesJson;
   private final Handler postSimpleProfile;
   private final Handler getAbout;
+  private final Handler postIOStat;
+  private final Handler postTop;
 
   /**
    * Starts a web server
@@ -53,7 +55,9 @@ public class DQDWebServer {
         new PostReproduction(usageLogger),
         new PostQueriesJson(usageLogger),
         new ProfileJSONSimplified.ProfileHTTPEndpoint(usageLogger),
-        new GetAbout());
+        new GetAbout(),
+        new PostIOStat(),
+        new PostTop());
   }
 
   /**
@@ -66,6 +70,9 @@ public class DQDWebServer {
    * @param postQueriesJson   wired up to /queriesjson with a POST action
    * @param postSimpleProfile wired up to /simple-profile with a POST action
    * @param getAbout          wired up to /about.json with a GET action
+   * @param postIOStats       wired up to /iostats with a GET action
+   * @param postTop           wired up to /top with a GET action
+   *
    */
   public DQDWebServer(
       final Handler getIndex,
@@ -74,7 +81,9 @@ public class DQDWebServer {
       final Handler postReproduction,
       final Handler postQueriesJson,
       final Handler postSimpleProfile,
-      final Handler getAbout) {
+      final Handler getAbout,
+      final Handler postIOStats,
+      final Handler postTop) {
     this.getIndex = getIndex;
     this.postProfile = postProfile;
     this.postProfiles = postProfiles;
@@ -82,6 +91,8 @@ public class DQDWebServer {
     this.postQueriesJson = postQueriesJson;
     this.postSimpleProfile = postSimpleProfile;
     this.getAbout = getAbout;
+    this.postIOStat = postIOStats;
+    this.postTop = postTop;
   }
 
   /**
@@ -100,6 +111,8 @@ public class DQDWebServer {
     app.get("/", this.getIndex);
     app.post("/profile", this.postProfile);
     app.post("/profiles", this.postProfiles);
+    app.post("/ttop", this.postTop);
+    app.post("/iostat", this.postIOStat);
     app.post("/queriesjson", this.postQueriesJson);
     app.post("/reproduction", this.postReproduction);
     app.post("/simple-profile", this.postSimpleProfile);

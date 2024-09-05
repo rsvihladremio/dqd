@@ -79,18 +79,6 @@
             startDatePicker.value = startDate;
             document.getElementById("end-date-queries").value = tomorrow.toISOString().substring(0, 10);
         });
-
-        function showDetailedReport(that, simpleFormID, detailedFormID) {
-            let simpleForm = document.getElementById(simpleFormID);
-            let detailedForm = document.getElementById(detailedFormID);
-            if (that.checked) {
-                simpleForm.style.display = 'none';
-                detailedForm.style.display = 'block';
-            } else {
-                simpleForm.style.display = 'block';
-                detailedForm.style.display = 'none';
-            }
-        }
     </script>
     <style>
         section:not(:target):not(#home),
@@ -107,8 +95,12 @@
             <div>Home</div>
         </a>
         <a href="#profile">
+            <i>table_rows</i>
+            <div>Simple Profile Analysis</div>
+        </a>
+        <a href="#profile-detailed">
             <i>equalizer</i>
-            <div>Profile Analysis</div>
+            <div>Detailed Profile Analysis</div>
         </a>
         <a href="#profiles-comparison">
             <i>compare_arrows</i>
@@ -121,6 +113,14 @@
         <a href="#schema">
             <i>database</i>
             <div>Schema Generation</div>
+        </a>
+        <a href="#iostat-analysis">
+            <i>computer</i>
+            <div>IOStat</div>
+        </a>
+        <a href="#top-analysis">
+            <i>vertical_align_top</i>
+            <div>Threaded Top</div>
         </a>
     </nav>
     <main class="responsive">
@@ -243,14 +243,6 @@
                                 *.tgz, *.zip)</span>
                             <i>attach_file</i>
                         </div>
-                        <label class="checkbox">
-                            <input type="checkbox" name="show_plan_comparison">
-                            <span>Show plan comparison</span>
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" name="show_convert_to_rel">
-                            <span>Show ConvertToRel comparison</span>
-                        </label>
                         <button id="detailed-profiles-btn" disabled onclick="showLoader();">compare</button>
                     </fieldset>
                 </form>
@@ -264,15 +256,10 @@
             </header>
             <article class="fill">
                 <h5>Single Profile Tool Purpose</h5>
-                <p>Simple comparison of profile statistics, operator performance and plan difference</p>
+                <p>Searchable, Sortable, Exportable view of all Operators</p>
             </article>
             <article class="fill">
                 <h5>Upload Form</h5>
-                <label class="checkbox">
-                    <input type="checkbox" name="show_detail_view"
-                        onclick="showDetailedReport(this, 'simple-profile-form', 'detailed-profile-form');" />
-                    <span>Show Detailed report (takes longer)</span>
-                </label>
                 <form id="simple-profile-form" method="POST" enctype="multipart/form-data" action="/simple-profile">
                     <caption>Summary Report</caption>
                     <fieldset>
@@ -290,7 +277,21 @@
                         <button id="simple-profile-btn" disabled onclick="showLoader();">analyze</button>
                     </fieldset>
                 </form>
-                <form id="detailed-profile-form" style="display: none" method="POST" enctype="multipart/form-data"
+            </article>
+        </section>
+        <section id="profile-detailed">
+            <header class="responsive">
+                <nav>
+                    <h4 class="max center-align about_version">DQD </h4>
+                </nav>
+            </header>
+            <article class="fill">
+                <h5>Single Profile Tool Purpose</h5>
+                <p>In depth review of a profile, row estimates, node level operator resource usage</p>
+            </article>
+            <article class="fill">
+                <h5>Upload Form</h5>
+                <form id="detailed-profile-form" method="POST" enctype="multipart/form-data"
                     action="/profile">
                     <caption>Detailed Report</caption>
                     <fieldset>
@@ -304,16 +305,67 @@
                                 *.tgz, *.zip)</span>
                             <i>attach_file</i>
                         </div>
-                        <label class="checkbox">
-                            <input type="checkbox" name="show_plan_details">
-                            <span>Show plan details</span>
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" name="show_convert_to_rel">
-                            <span>Show ConvertToRel</span>
-                        </label>
-
                         <button id="detailed-profile-btn" disabled onclick="showLoader();">analyze</button>
+                    </fieldset>
+                </form>
+            </article>
+        </section>
+        <section id="iostat-analysis">
+            <header class="responsive">
+                <nav>
+                    <h4 class="max center-align about_version">DQD </h4>
+                </nav>
+            </header>
+            <article class="fill">
+                <h5>IOSTAT Analyzer</h5>
+                <p>Using the output of "iostat -x -c -d -t 1 600" we can say a lot of things about a disk or a system</p>
+            </article>
+            <article class="fill">
+                <h5>Upload Form</h5>
+                <form id="iostat-form" method="POST" enctype="multipart/form-data"
+                    action="/iostat">
+                    <caption>IOSTAT Analysis</caption>
+                    <fieldset>
+                        <div class="field label prefix suffix border">
+                            <i>attach_file</i>
+                            <input type="text">
+                            <input type="file" name="iostatfile" 
+                                onchange="showButton(this, 1, 'iostat-btn');">
+                            <label>iostat files</label>
+                            <span class="helper">attach one iostat file run the following flags (-x -c -d -t 1)</span>
+                            <i>attach_file</i>
+                        </div>
+                        <button id="iostat-btn" disabled onclick="showLoader();">analyze</button>
+                    </fieldset>
+                </form>
+            </article>
+        </section>
+        <section id="top-analysis">
+            <header class="responsive">
+                <nav>
+                    <h4 class="max center-align about_version">DQD </h4>
+                </nav>
+            </header>
+            <article class="fill">
+                <h5>thread TOP Analyzer</h5>
+                <p>BETA: Using the output of "LINES=100 top -H -n 120 -p 1 -d 2 -bw" which comes from DDC. We can say a lot about the system, will not work with other top output</p>
+            </article>
+            <article class="fill">
+                <h5>Upload Form</h5>
+                <form id="top-form" method="POST" enctype="multipart/form-data"
+                    action="/ttop">
+                    <caption>Thread TOP Analysis</caption>
+                    <fieldset>
+                        <div class="field label prefix suffix border">
+                            <i>attach_file</i>
+                            <input type="text">
+                            <input type="file" name="ttop" 
+                                onchange="showButton(this, 1, 'ttop-btn');">
+                            <label>ttop.txt</label>
+                            <span class="helper">attach one top file run the following flags (LINES=100 top -H -n 120 -p 1 -d 2 -bw)</span>
+                            <i>attach_file</i>
+                        </div>
+                        <button id="ttop-btn" disabled onclick="showLoader();">analyze</button>
                     </fieldset>
                 </form>
             </article>
