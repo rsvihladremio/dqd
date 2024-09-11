@@ -36,7 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
-public class OperatorsRecordsScannedReport implements ProfileJSONReport {
+public class OperatorsRecordsScannedReport extends ProfileJSONReport {
 
   public static class OperatorRecordsScannedReportResult {
     private List<OperatorRecordDetail> top10RecordsScanned;
@@ -258,7 +258,7 @@ public class OperatorsRecordsScannedReport implements ProfileJSONReport {
   }
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
 
     final OperatorRecordsScannedReportResult report =
         OperatorsRecordsScannedReport.generateRecordReport(profileJson, relations);
@@ -400,5 +400,15 @@ public class OperatorsRecordsScannedReport implements ProfileJSONReport {
               peakMemoryUsedRows));
     }
     return builder.toString();
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "operators-scanned-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Operators";
   }
 }

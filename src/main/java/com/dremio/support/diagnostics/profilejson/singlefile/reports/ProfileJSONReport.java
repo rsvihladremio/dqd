@@ -17,6 +17,20 @@ import com.dremio.support.diagnostics.profilejson.plan.PlanRelation;
 import com.dremio.support.diagnostics.shared.dto.profilejson.ProfileJSON;
 import java.util.Collection;
 
-public interface ProfileJSONReport {
-  String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations);
+public abstract class ProfileJSONReport {
+  public final String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+    return """
+           <section id="%s">
+           %s
+           </section>
+           """
+        .formatted(htmlSectionName(), createReport(profileJson, relations));
+  }
+
+  protected abstract String createReport(
+      ProfileJSON profileJson, Collection<PlanRelation> relations);
+
+  public abstract String htmlSectionName();
+
+  public abstract String htmlTitle();
 }

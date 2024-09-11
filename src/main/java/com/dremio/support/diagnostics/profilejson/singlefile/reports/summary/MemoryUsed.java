@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
-public class MemoryUsed implements ProfileJSONReport {
+public class MemoryUsed extends ProfileJSONReport {
 
   public static Collection<Collection<HtmlTableDataColumn<String, Long>>>
       generateMemoryByPhaseReport(final ProfileJSON profileJson) {
@@ -86,7 +86,7 @@ public class MemoryUsed implements ProfileJSONReport {
   }
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
     Collection<Collection<HtmlTableDataColumn<String, Long>>> rows =
         generateMemoryByPhaseReport(profileJson);
     if (rows.isEmpty()) {
@@ -98,5 +98,15 @@ public class MemoryUsed implements ProfileJSONReport {
         "Total Peak Memory Allocated by Phase (across nodes)",
         Arrays.asList("Phase", "memory"),
         rows);
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "memory-used-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Memory";
   }
 }

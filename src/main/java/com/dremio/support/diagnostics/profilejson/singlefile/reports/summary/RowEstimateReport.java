@@ -37,12 +37,12 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
-public class RowEstimateReport implements ProfileJSONReport {
+public class RowEstimateReport extends ProfileJSONReport {
 
   private static final Logger logger = Logger.getLogger(RowEstimateReport.class.getName());
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
     final Collection<RowEstimateDetail> details =
         RowEstimateReport.getEstimates(profileJson, relations);
 
@@ -219,5 +219,15 @@ public class RowEstimateReport implements ProfileJSONReport {
         .sorted(
             (left, right) -> Double.compare(right.getDifferenceRatio(), left.getDifferenceRatio()))
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "row-estimate-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Row Estimates";
   }
 }

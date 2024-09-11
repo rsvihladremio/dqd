@@ -14,6 +14,7 @@
 package com.dremio.support.diagnostics.profilejson.singlefile.reports;
 
 import com.dremio.support.diagnostics.profilejson.plan.PlanRelation;
+import com.dremio.support.diagnostics.profilejson.singlefile.SummaryOut;
 import com.dremio.support.diagnostics.profilejson.singlefile.reports.summary.BlockReport;
 import com.dremio.support.diagnostics.profilejson.singlefile.reports.summary.FindingsReport;
 import com.dremio.support.diagnostics.profilejson.singlefile.reports.summary.MemoryUsed;
@@ -25,18 +26,20 @@ import com.dremio.support.diagnostics.profilejson.singlefile.reports.summary.Row
 import com.dremio.support.diagnostics.profilejson.singlefile.reports.summary.StateTimingsReport;
 import com.dremio.support.diagnostics.profilejson.singlefile.reports.summary.TopLineProfileSummary;
 import com.dremio.support.diagnostics.shared.dto.profilejson.ProfileJSON;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 public class ProfileSummaryReport {
 
-  public String generateSummary(
+  public SummaryOut generateSummary(
       final boolean showPlanDetails,
       final ProfileJSON parsed,
       final Collection<PlanRelation> relations) {
     final StringBuilder builder = new StringBuilder();
-
+    List<String> sections = new ArrayList<>();
+    List<String> titles = new ArrayList<>();
     final List<ProfileJSONReport> reports =
         Arrays.asList(
             new TopLineProfileSummary(),
@@ -49,11 +52,13 @@ public class ProfileSummaryReport {
             new RowEstimateReport(),
             new BlockReport());
     for (final ProfileJSONReport report : reports) {
+      sections.add(report.htmlSectionName());
+      titles.add(report.htmlTitle());
       builder.append(report.generateReport(parsed, relations));
     }
     if (showPlanDetails) {
       builder.append(new PlanDetailsReport().generateReport(parsed, relations));
     }
-    return builder.toString();
+    return new SummaryOut(builder.toString(), sections, titles);
   }
 }
