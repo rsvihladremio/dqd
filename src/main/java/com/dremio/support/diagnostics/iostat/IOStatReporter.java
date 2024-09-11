@@ -191,6 +191,24 @@ public class IOStatReporter {
      }
    }
  </script>
+  <script>
+    const sections = document.querySelectorAll('section');
+    const links = document.querySelectorAll('a.nav-link');
+
+    window.addEventListener('scroll', () => {
+        let scrollPosition = window.scrollY + 80;
+        sections.forEach(section => {
+            if (scrollPosition >= section.offsetTop) {
+                links.forEach(link => {
+                    link.classList.remove('active-link');
+                    if (section.getAttribute('id') === link.getAttribute('href').substring(1)) {
+                        link.classList.add('active-link');
+                    }
+                });
+            }
+        });
+    });
+  </script>
  </body>
 </html>
 """,
