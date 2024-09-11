@@ -27,10 +27,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class PlanDetailsReport implements ProfileJSONReport {
+public class PlanDetailsReport extends ProfileJSONReport {
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
     final Collection<PlanDetail> planDetails =
         PlanDetailsReport.getPlanDetails(profileJson, relations);
     final HtmlTableBuilder builder = new HtmlTableBuilder();
@@ -117,5 +117,15 @@ public class PlanDetailsReport implements ProfileJSONReport {
       planDetails.add(planDetail);
     }
     return planDetails;
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "plan-details-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Plan";
   }
 }

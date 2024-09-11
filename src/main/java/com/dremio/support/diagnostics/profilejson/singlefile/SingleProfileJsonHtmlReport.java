@@ -14,7 +14,6 @@
 package com.dremio.support.diagnostics.profilejson.singlefile;
 
 import com.dremio.support.diagnostics.profilejson.*;
-import com.dremio.support.diagnostics.profilejson.PhaseThread;
 import com.dremio.support.diagnostics.profilejson.converttorel.ConvertToRelGraph;
 import com.dremio.support.diagnostics.profilejson.converttorel.ConvertToRelGraphParser;
 import com.dremio.support.diagnostics.profilejson.plan.PlanRelation;
@@ -92,13 +91,18 @@ public class SingleProfileJsonHtmlReport implements Report {
     }
     final List<String> scripts = new ArrayList<>();
     final List<String> htmlFragments = new ArrayList<>();
+    final List<String> sections = new ArrayList<>();
+    final List<String> titles = new ArrayList<>();
     final List<Operator> operators = new ArrayList<>();
     if (this.parsed != null) {
       final Collection<PlanRelation> planRelations =
           new PlanRelationshipParser().getPlanRelations(this.parsed);
-      htmlFragments.add(
+      SummaryOut out =
           new ProfileSummaryReport()
-              .generateSummary(this.showPlanDetails, this.parsed, planRelations));
+              .generateSummary(this.showPlanDetails, this.parsed, planRelations);
+      sections.addAll(out.sections());
+      titles.addAll(out.titles());
+      htmlFragments.add(out.htmlString());
       // disable dynamic graphs if page is too large
       final int maxThreadsForGraphs = 500;
       if (phaseThreadNames.length < maxThreadsForGraphs) {
@@ -107,11 +111,28 @@ public class SingleProfileJsonHtmlReport implements Report {
         final String mermaidJsText = jsLibProvider.getMermaidJsText();
         scripts.add("<script>" + mermaidJsText + "</script>");
         htmlFragments.add(
-            new PhasesPlot()
-                .generatePlot(phaseThreadNames, phaseProcessTimes, phaseThreadTextNames));
+            """
+            <section id="phases-section">
+            %s
+            </section>
+            """
+                .formatted(
+                    new PhasesPlot()
+                        .generatePlot(phaseThreadNames, phaseProcessTimes, phaseThreadTextNames)));
+        sections.add("phases-section");
+        titles.add("Phases");
         htmlFragments.add(
-            new TimelinePlot()
-                .generatePlot(phaseThreadNames, startTimes, endTimes, phaseThreadTextNames));
+            """
+             <section id="timeline-section">
+             %s
+             </section>
+            """
+                .formatted(
+                    new TimelinePlot()
+                        .generatePlot(
+                            phaseThreadNames, startTimes, endTimes, phaseThreadTextNames)));
+        sections.add("timeline-section");
+        titles.add("Timeline");
         // graph out operators by process time
         if (this.parsed.getFragmentProfile() != null) {
           for (final FragmentProfile fragmentProfile : this.parsed.getFragmentProfile()) {
@@ -164,15 +185,38 @@ public class SingleProfileJsonHtmlReport implements Report {
       }
 
       htmlFragments.add(
-          new OperatorDurationPlot().generatePlot(operatorNames, operatorTimes, operatorText));
+          """
+          <section id="op-duration-section">
+          %s
+          </section>
+          """
+              .formatted(
+                  new OperatorDurationPlot()
+                      .generatePlot(operatorNames, operatorTimes, operatorText)));
+      sections.add("op-duration-section");
+      titles.add("Op Duration");
+
       htmlFragments.add(
-          new OperatorRecordsPlot().generatePlot(operatorNames, operatorRecords, operatorText));
+          """
+          <section id="op-records-section">
+          %s
+          </section>
+          """
+              .formatted(
+                  new OperatorRecordsPlot()
+                      .generatePlot(operatorNames, operatorRecords, operatorText)));
+      sections.add("op-records-section");
+      titles.add("Op Records");
       final String convertToRel;
       if (showConvertToRel) {
         final ConvertToRelGraph c = new ConvertToRelGraphParser().parseConvertToRel(parsed);
         if (c != null) {
+          sections.add("convert-to-rel-section");
+          titles.add("Convert To Rel");
           convertToRel =
-              "<h2>Convert To Rel</h2>\n" + sankeyWriter.writeMermaid(c.getConvertToRelTree());
+              "<section id=\"convert-to-rel-section\"><h2>Convert To Rel</h2>\n"
+                  + sankeyWriter.writeMermaid(c.getConvertToRelTree())
+                  + " </section>";
         } else {
           convertToRel = "";
         }
@@ -185,6 +229,13 @@ public class SingleProfileJsonHtmlReport implements Report {
           "<h3 style=\"color: red\">Too Many Phases: Disabled Graphs and Convert To Rel</h3>");
     }
 
+    var sectionBuilder = new StringBuilder();
+    for (int j = 0; j < titles.size(); j++) {
+      final String title = titles.get(j);
+      final String sectionName = sections.get(j);
+      sectionBuilder.append(
+          String.format("<a class=\"nav-link\" href=\"#%s\">%s</a>\n", sectionName, title));
+    }
     return "<!doctype html>\n"
         + "<html   lang=\"en\">\n"
         + "<head>\n"
@@ -257,6 +308,88 @@ public class SingleProfileJsonHtmlReport implements Report {
         + "    z-index: 100; \n"
         + "}\n"
         + " </style>\n"
+        + """
+         <style>
+    html {
+     scroll-behavior: smooth;
+   }
+    table {
+    table-layout:fixed; width: 100%%;
+    }
+    .summary-page {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 10px;
+        grid-auto-rows: minmax(100px, auto);
+    }
+    .content-page {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 10px;
+        grid-auto-rows: minmax(100px, auto);
+    }
+    .tooltip-pr {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .tooltip-pr .tooltiptext-pr {
+      color: black;
+      hyphens: auto;
+    }
+
+    .tooltip-pr:hover {
+      cursor: pointer;
+      white-space: initial;
+      transition: height 0.2s ease-in-out;
+    }
+
+    /* Style the navbar */
+    #navbar {
+      overflow: hidden;
+      background-color: #333;
+      z-index: 289;
+    }
+
+    /* Navbar links */
+    #navbar a {
+      float: left;
+      display: block;
+      color: #f2f2f2;
+      text-align: center;
+      padding: 14px;
+      text-decoration: none;
+    }
+      #navbar .active-link {
+        color: white;
+        background-color: green;
+      }
+
+    /* Page content */
+    .content {
+      padding-top: 50px;
+    }
+
+    section {
+      scroll-margin-block-start: 110px;
+      scroll-margin-block-end: 110pxx;
+
+    }
+
+    /* The sticky class is added to the navbar with JS when it reaches its scroll position */
+    .sticky {
+      position: fixed;
+      top: 0;
+      width: 100%%;
+    }
+
+    /* Add some top padding to the page content to prevent sudden quick movement (as the navigation bar gets a new position at the top of the page (position:fixed and top:0) */
+    .sticky + .content {
+      padding-top: 100px;
+    }
+</style>
+"""
         + "<style>\n"
         + jsLibProvider.getSortableCSSText()
         + "</style>\n"
@@ -271,8 +404,61 @@ public class SingleProfileJsonHtmlReport implements Report {
         + "</script>\n"
         + String.join("\n", scripts)
         + "</head>\n"
-        + "<body>"
+        + """
+                 <body>
+
+          <div id="navbar">
+            <div style="float: left;">
+            <h3 style="color: white" >Profile</h3>
+            </div>
+            <div style="float:right;">
+            %s
+            </div>
+          </div>
+                 <main class="content">
+          """
+            .formatted(sectionBuilder.toString())
         + String.join("\n", htmlFragments)
+        + """
+       </main>
+       <script>
+  // When the user scrolls the page, execute myFunction
+  window.onscroll = function() {stickNav()};
+
+  // Get the navbar
+  var navbar = document.getElementById("navbar");
+
+  // Get the offset position of the navbar
+  var sticky = navbar.offsetTop;
+
+  // Add the sticky class to the navbar when you reach its scroll position. Remove "sticky" when you leave the scroll position
+  function stickNav() {
+    if (window.pageYOffset >= sticky) {
+      navbar.classList.add("sticky")
+    } else {
+      navbar.classList.remove("sticky");
+    }
+  }
+</script>
+ <script>
+   const sections = document.querySelectorAll('section');
+   const links = document.querySelectorAll('a.nav-link');
+
+   window.addEventListener('scroll', () => {
+       let scrollPosition = window.scrollY + 140;
+       sections.forEach(section => {
+           if (scrollPosition >= section.offsetTop) {
+               links.forEach(link => {
+                   link.classList.remove('active-link');
+                   if (section.getAttribute('id') === link.getAttribute('href').substring(1)) {
+                       link.classList.add('active-link');
+                   }
+               });
+           }
+       });
+   });
+ </script>
+"""
         + "</body>";
   }
 

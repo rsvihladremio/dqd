@@ -30,10 +30,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StateTimingsReport implements ProfileJSONReport {
+public class StateTimingsReport extends ProfileJSONReport {
 
   @Override
-  public String generateReport(
+  protected String createReport(
       final ProfileJSON profileJson, final Collection<PlanRelation> relations) {
     final Collection<StateTiming> stateTimings = StateTimingsReport.getStateTimings(profileJson);
     final HtmlTableBuilder builder = new HtmlTableBuilder();
@@ -127,5 +127,15 @@ public class StateTimingsReport implements ProfileJSONReport {
       stateTimings.add(timing);
     }
     return stateTimings;
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "state-timings-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "States";
   }
 }

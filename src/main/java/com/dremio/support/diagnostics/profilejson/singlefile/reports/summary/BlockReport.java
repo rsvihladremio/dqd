@@ -35,13 +35,14 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
-public class BlockReport implements ProfileJSONReport {
+public class BlockReport extends ProfileJSONReport {
 
   private final BlockFinder blockFinder = new BlockFinder();
   private final HtmlTableBuilder tableBuilder = new HtmlTableBuilder();
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(
+      final ProfileJSON profileJson, final Collection<PlanRelation> relations) {
     final MostBlockedReport blockingOperatorReport =
         BlockReport.getBlockingOperatorReport(relations, profileJson);
     if (blockingOperatorReport == null) {
@@ -50,7 +51,7 @@ public class BlockReport implements ProfileJSONReport {
     final StringBuilder builder = new StringBuilder();
     final String mostBlockedPhaseName = blockingOperatorReport.getName();
 
-    List<Collection<HtmlTableDataColumn<String, Long>>> mostBlockedData = new ArrayList<>();
+    final List<Collection<HtmlTableDataColumn<String, Long>>> mostBlockedData = new ArrayList<>();
     mostBlockedData.add(
         Arrays.asList(
             new HtmlTableDataColumn<>(
@@ -77,8 +78,8 @@ public class BlockReport implements ProfileJSONReport {
     if (blockingOperatorReport.getBlockedUpstreamMillis() > 0) {
       final Collection<Collection<HtmlTableDataColumn<String, Number>>> upstreamRows =
           new ArrayList<>();
-      for (PhaseBlockStats blockStats : blockingOperatorReport.getUpstream()) {
-        List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
+      for (final PhaseBlockStats blockStats : blockingOperatorReport.getUpstream()) {
+        final List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
         cols.add(new HtmlTableDataColumn<>(blockStats.getPhase(), null, false));
         cols.add(
             new HtmlTableDataColumn<>(
@@ -130,8 +131,8 @@ public class BlockReport implements ProfileJSONReport {
     if (blockingOperatorReport.getBlockedDownstreamMillis() > 0) {
       final Collection<Collection<HtmlTableDataColumn<String, Number>>> downstreamRows =
           new ArrayList<>();
-      for (PhaseBlockStats blockStats : blockingOperatorReport.getDownstream()) {
-        List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
+      for (final PhaseBlockStats blockStats : blockingOperatorReport.getDownstream()) {
+        final List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
         cols.add(new HtmlTableDataColumn<>(blockStats.getPhase(), null, false));
         cols.add(
             new HtmlTableDataColumn<>(
@@ -166,7 +167,7 @@ public class BlockReport implements ProfileJSONReport {
         downstreamRows.add(cols);
       }
       if (downstreamRows.isEmpty() && mostBlockedPhaseName.equals("00-00-xx")) {
-        List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
+        final List<HtmlTableDataColumn<String, Number>> cols = new ArrayList<>();
         cols.add(new HtmlTableDataColumn<>("JDBC/ODBC/REST/ETC CLIENT", null, false));
         cols.add(new HtmlTableDataColumn<>("0 millis", 0, false));
         cols.add(new HtmlTableDataColumn<>("0.0%", 0.0, false));
@@ -212,7 +213,7 @@ public class BlockReport implements ProfileJSONReport {
       return upstream;
     }
 
-    public void setUpstream(Collection<PhaseBlockStats> upstream) {
+    public void setUpstream(final Collection<PhaseBlockStats> upstream) {
       this.upstream = upstream;
     }
 
@@ -220,7 +221,7 @@ public class BlockReport implements ProfileJSONReport {
       return downstream;
     }
 
-    public void setDownstream(Collection<PhaseBlockStats> downstream) {
+    public void setDownstream(final Collection<PhaseBlockStats> downstream) {
       this.downstream = downstream;
     }
 
@@ -228,7 +229,7 @@ public class BlockReport implements ProfileJSONReport {
       return blockedOnSharedMillis;
     }
 
-    public void setBlockedOnSharedMillis(long blockedOnSharedMillis) {
+    public void setBlockedOnSharedMillis(final long blockedOnSharedMillis) {
       this.blockedOnSharedMillis = blockedOnSharedMillis;
     }
 
@@ -236,7 +237,7 @@ public class BlockReport implements ProfileJSONReport {
       return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
       this.name = name;
     }
 
@@ -244,7 +245,7 @@ public class BlockReport implements ProfileJSONReport {
       return blockedUpstreamMillis;
     }
 
-    public void setBlockedUpstreamMillis(long blockedUpstreamMillis) {
+    public void setBlockedUpstreamMillis(final long blockedUpstreamMillis) {
       this.blockedUpstreamMillis = blockedUpstreamMillis;
     }
 
@@ -252,17 +253,17 @@ public class BlockReport implements ProfileJSONReport {
       return blockedDownstreamMillis;
     }
 
-    public void setBlockedDownstreamMillis(long blockedDownstreamMillis) {
+    public void setBlockedDownstreamMillis(final long blockedDownstreamMillis) {
       this.blockedDownstreamMillis = blockedDownstreamMillis;
     }
   }
 
   private Collection<String> getAllUpstreamPhasesForName(
       final Collection<PlanRelation> planRelations, final String name) {
-    List<String> matches = new ArrayList<>();
-    for (PlanRelation planRelation : planRelations) {
+    final List<String> matches = new ArrayList<>();
+    for (final PlanRelation planRelation : planRelations) {
       if (planRelation.getName().equals(name)) {
-        for (PlanRelation upstream : planRelation.getUpstream()) {
+        for (final PlanRelation upstream : planRelation.getUpstream()) {
           final String upStreamName = upstream.getName();
           final String phaseOnly = Iterables.get(Splitter.on('-').split(upStreamName), 0);
           matches.add(phaseOnly);
@@ -277,10 +278,10 @@ public class BlockReport implements ProfileJSONReport {
 
   private Collection<String> getAllDownstreamPhasesForName(
       final Collection<PlanRelation> planRelations, final String name) {
-    Set<String> matches = new LinkedHashSet<>();
-    for (PlanRelation planRelation : planRelations) {
+    final Set<String> matches = new LinkedHashSet<>();
+    for (final PlanRelation planRelation : planRelations) {
       if (planRelation.getName().equals(name)) {
-        for (PlanRelation downStream : planRelation.getDownstream()) {
+        for (final PlanRelation downStream : planRelation.getDownstream()) {
           final String downStreamName = downStream.getName();
           final String phaseOnly = Iterables.get(Splitter.on('-').split(downStreamName), 0);
           matches.add(phaseOnly);
@@ -294,12 +295,12 @@ public class BlockReport implements ProfileJSONReport {
   }
 
   public static MostBlockedReport getBlockingOperatorReport(
-      Collection<PlanRelation> planRelations, ProfileJSON profileJSON) {
+      final Collection<PlanRelation> planRelations, final ProfileJSON profileJSON) {
     return new BlockReport().getBlockingOperator(planRelations, profileJSON);
   }
 
   public MostBlockedReport getBlockingOperator(
-      Collection<PlanRelation> planRelations, ProfileJSON profileJSON) {
+      final Collection<PlanRelation> planRelations, final ProfileJSON profileJSON) {
     MinorFragmentProfile mostBlocked = null;
     long mostBlockedDuration = 0;
     List<String> blockedPhaseOperatorNames = new ArrayList<>();
@@ -308,30 +309,30 @@ public class BlockReport implements ProfileJSONReport {
     if (profileJSON.getFragmentProfile() == null) {
       return new MostBlockedReport();
     }
-    for (FragmentProfile fragment : profileJSON.getFragmentProfile()) {
+    for (final FragmentProfile fragment : profileJSON.getFragmentProfile()) {
       if (fragment == null || fragment.getMinorFragmentProfile() == null) {
         continue;
       }
-      for (MinorFragmentProfile minorFragment : fragment.getMinorFragmentProfile()) {
+      for (final MinorFragmentProfile minorFragment : fragment.getMinorFragmentProfile()) {
         if (minorFragment == null) {
           continue;
         }
-        long blockedDuration = minorFragment.getBlockedDuration();
+        final long blockedDuration = minorFragment.getBlockedDuration();
         if (blockedDuration > mostBlockedDuration) {
           mostBlocked = minorFragment;
           mostBlockedDuration = blockedDuration;
           blockedPhaseOperatorNames = new ArrayList<>();
           final String phaseName =
               StringUtils.leftPad(String.valueOf(fragment.getMajorFragmentId()), 2, "0");
-          String threadId =
+          final String threadId =
               StringUtils.leftPad(String.valueOf(minorFragment.getMinorFragmentId()), 2, "0");
           fullName = String.format("%s-%s-xx", phaseName, threadId);
           blockedPhaseName = phaseName;
           if (minorFragment.getOperatorProfile() == null) {
             continue;
           }
-          for (OperatorProfile operatorProfile : minorFragment.getOperatorProfile()) {
-            String operatorId =
+          for (final OperatorProfile operatorProfile : minorFragment.getOperatorProfile()) {
+            final String operatorId =
                 StringUtils.leftPad(String.valueOf(operatorProfile.getOperatorId()), 2, "0");
             blockedPhaseOperatorNames.add(String.format("%s-%s", phaseName, operatorId));
           }
@@ -354,7 +355,7 @@ public class BlockReport implements ProfileJSONReport {
         downstreamPhases.addAll(downstream);
       }
       final List<PhaseBlockStats> downstream = new ArrayList<>();
-      for (String phase : downstreamPhases) {
+      for (final String phase : downstreamPhases) {
         // skip the actual phase
         if (phase.equals(blockedPhaseName)) {
           continue;
@@ -373,7 +374,7 @@ public class BlockReport implements ProfileJSONReport {
       }
 
       final List<PhaseBlockStats> upstream = new ArrayList<>();
-      for (String phase : upstreamPhases) {
+      for (final String phase : upstreamPhases) {
         // skip the actual phase
         if (phase.equals(blockedPhaseName)) {
           continue;
@@ -388,5 +389,15 @@ public class BlockReport implements ProfileJSONReport {
       blockedReport.setBlockedOnSharedMillis(mostBlocked.getBlockedOnSharedResourceDuration());
     }
     return blockedReport;
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "block-report-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Blocking";
   }
 }

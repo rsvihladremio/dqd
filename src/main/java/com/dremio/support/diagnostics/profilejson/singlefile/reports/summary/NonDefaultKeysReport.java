@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class NonDefaultKeysReport implements ProfileJSONReport {
+public class NonDefaultKeysReport extends ProfileJSONReport {
   private static final Logger LOGGER = Logger.getLogger(NonDefaultKeysReport.class.getName());
 
   public static class SupportKey {
@@ -72,7 +72,7 @@ public class NonDefaultKeysReport implements ProfileJSONReport {
   }
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
     List<Collection<HtmlTableDataColumn<Object, Object>>> rows = new ArrayList<>();
     for (final SupportKey key : NonDefaultKeysReport.getNonDefaultOptions(profileJson)) {
       rows.add(
@@ -126,5 +126,15 @@ public class NonDefaultKeysReport implements ProfileJSONReport {
       keys.add(key);
     }
     return keys;
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "non-default-support-keys-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Support Keys";
   }
 }

@@ -28,12 +28,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
-public class FindingsReport implements ProfileJSONReport {
+public class FindingsReport extends ProfileJSONReport {
 
   private final double percentageQueryThreshold = 5.0;
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
     HtmlTableBuilder builder = new HtmlTableBuilder();
     List<Collection<HtmlTableDataColumn<String, Number>>> findings = new ArrayList<>();
     for (String finding : FindingsReport.searchForFindings(profileJson, relations)) {
@@ -249,5 +249,15 @@ public class FindingsReport implements ProfileJSONReport {
     }
 
     return findings;
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "findings-report-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Findings";
   }
 }

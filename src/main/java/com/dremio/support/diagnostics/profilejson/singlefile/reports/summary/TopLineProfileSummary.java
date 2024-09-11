@@ -33,10 +33,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class TopLineProfileSummary implements ProfileJSONReport {
+public class TopLineProfileSummary extends ProfileJSONReport {
 
   @Override
-  public String generateReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
+  protected String createReport(ProfileJSON profileJson, Collection<PlanRelation> relations) {
     HtmlTableBuilder builder = new HtmlTableBuilder();
     final List<Collection<HtmlTableDataColumn<Object, Object>>> rows = new ArrayList<>();
     String version = profileJson.getDremioVersion();
@@ -89,5 +89,15 @@ public class TopLineProfileSummary implements ProfileJSONReport {
         builder.generateTable(
             "profileSummaryTable", "Profile Summary", asList("name", "value"), rows);
     return "<div><h1>Query</h1><p>" + profileJson.getQuery() + "</p></div>" + table;
+  }
+
+  @Override
+  public String htmlSectionName() {
+    return "top-line-profile-summary-section";
+  }
+
+  @Override
+  public String htmlTitle() {
+    return "Summary";
   }
 }
