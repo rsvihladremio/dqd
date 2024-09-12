@@ -103,53 +103,49 @@ public class SingleProfileJsonHtmlReport implements Report {
       sections.addAll(out.sections());
       titles.addAll(out.titles());
       htmlFragments.add(out.htmlString());
-      // disable dynamic graphs if page is too large
-      final int maxThreadsForGraphs = 500;
-      if (phaseThreadNames.length < maxThreadsForGraphs) {
-        final String plotlyJsText = jsLibProvider.getPlotlyJsText();
-        scripts.add("<script>" + plotlyJsText + "</script>");
-        final String mermaidJsText = jsLibProvider.getMermaidJsText();
-        scripts.add("<script>" + mermaidJsText + "</script>");
-        htmlFragments.add(
-            """
-            <section id="phases-section">
-            %s
-            </section>
-            """
-                .formatted(
-                    new PhasesPlot()
-                        .generatePlot(phaseThreadNames, phaseProcessTimes, phaseThreadTextNames)));
-        sections.add("phases-section");
-        titles.add("Phases");
-        htmlFragments.add(
-            """
-             <section id="timeline-section">
-             %s
-             </section>
-            """
-                .formatted(
-                    new TimelinePlot()
-                        .generatePlot(
-                            phaseThreadNames, startTimes, endTimes, phaseThreadTextNames)));
-        sections.add("timeline-section");
-        titles.add("Timeline");
-        // graph out operators by process time
-        if (this.parsed.getFragmentProfile() != null) {
-          for (final FragmentProfile fragmentProfile : this.parsed.getFragmentProfile()) {
-            if (fragmentProfile != null && fragmentProfile.getMinorFragmentProfile() != null) {
-              final int phaseId = fragmentProfile.getMajorFragmentId();
-              for (final MinorFragmentProfile minorProfile :
-                  fragmentProfile.getMinorFragmentProfile()) {
-                if (minorProfile != null && minorProfile.getOperatorProfile() != null) {
-                  for (final OperatorProfile operatorProfile : minorProfile.getOperatorProfile()) {
-                    final Operator operator =
-                        Operator.createFromOperatorProfile(
-                            operatorProfile,
-                            this.parsed.getOperatorTypeMetricsMap().getMetricsDef());
-                    operator.setParentPhaseId(phaseId);
-                    operator.setThreadId(minorProfile.getMinorFragmentId());
-                    operators.add(operator);
-                  }
+      final String plotlyJsText = jsLibProvider.getPlotlyJsText();
+      scripts.add("<script>" + plotlyJsText + "</script>");
+      final String mermaidJsText = jsLibProvider.getMermaidJsText();
+      scripts.add("<script>" + mermaidJsText + "</script>");
+      htmlFragments.add(
+          """
+          <section id="phases-section">
+          <h2>Phases</h2>
+          %s
+          </section>
+          """
+              .formatted(
+                  new PhasesPlot()
+                      .generatePlot(phaseThreadNames, phaseProcessTimes, phaseThreadTextNames)));
+      sections.add("phases-section");
+      titles.add("Phases");
+      htmlFragments.add(
+          """
+           <section id="timeline-section">
+            <h2>Timeline</h2>
+           %s
+           </section>
+          """
+              .formatted(
+                  new TimelinePlot()
+                      .generatePlot(phaseThreadNames, startTimes, endTimes, phaseThreadTextNames)));
+      sections.add("timeline-section");
+      titles.add("Timeline");
+      // graph out operators by process time
+      if (this.parsed.getFragmentProfile() != null) {
+        for (final FragmentProfile fragmentProfile : this.parsed.getFragmentProfile()) {
+          if (fragmentProfile != null && fragmentProfile.getMinorFragmentProfile() != null) {
+            final int phaseId = fragmentProfile.getMajorFragmentId();
+            for (final MinorFragmentProfile minorProfile :
+                fragmentProfile.getMinorFragmentProfile()) {
+              if (minorProfile != null && minorProfile.getOperatorProfile() != null) {
+                for (final OperatorProfile operatorProfile : minorProfile.getOperatorProfile()) {
+                  final Operator operator =
+                      Operator.createFromOperatorProfile(
+                          operatorProfile, this.parsed.getOperatorTypeMetricsMap().getMetricsDef());
+                  operator.setParentPhaseId(phaseId);
+                  operator.setThreadId(minorProfile.getMinorFragmentId());
+                  operators.add(operator);
                 }
               }
             }
@@ -187,6 +183,7 @@ public class SingleProfileJsonHtmlReport implements Report {
       htmlFragments.add(
           """
           <section id="op-duration-section">
+          <h2>Duration Graph</h2>
           %s
           </section>
           """
@@ -194,11 +191,12 @@ public class SingleProfileJsonHtmlReport implements Report {
                   new OperatorDurationPlot()
                       .generatePlot(operatorNames, operatorTimes, operatorText)));
       sections.add("op-duration-section");
-      titles.add("Op Duration");
+      titles.add("Duration Graph");
 
       htmlFragments.add(
           """
           <section id="op-records-section">
+          <h2>Records Graph</h2>
           %s
           </section>
           """
@@ -206,7 +204,7 @@ public class SingleProfileJsonHtmlReport implements Report {
                   new OperatorRecordsPlot()
                       .generatePlot(operatorNames, operatorRecords, operatorText)));
       sections.add("op-records-section");
-      titles.add("Op Records");
+      titles.add("Records Graph");
       final String convertToRel;
       if (showConvertToRel) {
         final ConvertToRelGraph c = new ConvertToRelGraphParser().parseConvertToRel(parsed);
