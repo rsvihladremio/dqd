@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.dremio.support</groupId>
   <artifactId>dqd</artifactId>
-  <version>0.12.2</version>
+  <version>0.12.3</version>
   <distributionManagement>
     <repository>
       <id>github</id>
@@ -193,6 +193,23 @@
             </licenseHeader>
           </java>
         </configuration>
+        <executions>
+          <execution>
+            <id>spotless-apply</id>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+          <execution>
+            <!-- this seems silly but this is to prevent someone from committed modified files and sneaking them into the source-->
+            <id>spotless-verify</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
