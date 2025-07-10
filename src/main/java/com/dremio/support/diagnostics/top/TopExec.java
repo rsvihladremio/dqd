@@ -32,15 +32,48 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import org.apache.commons.text.StringEscapeUtils;
 
 public class TopExec {
+  /**
+   * A composite key class to uniquely identify threads by combining PID and command.
+   * This helps address the issue of duplicate or recycled PIDs.
+   */
+  private static class ThreadKey {
+    private final String pid;
+    private final String command;
+
+    public ThreadKey(String pid, String command) {
+      this.pid = pid;
+      this.command = command;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ThreadKey threadKey = (ThreadKey) o;
+      return pid.equals(threadKey.pid) && command.equals(threadKey.command);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(pid, command);
+    }
+
+    @Override
+    public String toString() {
+      return pid + ":" + command;
+    }
+  }
+
   public static void exec(final InputStream file, final OutputStream writer) throws IOException {
     try (InputStreamReader inputStreamReader = new InputStreamReader(file)) {
       try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
         try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(writer)) {
           final List<LocalTime> times = new ArrayList<>();
-          final Map<String, List<ThreadUsage>> maps = new HashMap<>();
+          final Map<ThreadKey, List<ThreadUsage>> maps = new HashMap<>();
           final List<CPUStats> cpuStats = new ArrayList<>();
           final List<MemStats> memStats = new ArrayList<>();
           final List<SwapStats> swapStats = new ArrayList<>();
@@ -167,14 +200,16 @@ public class TopExec {
 
               final String commandStr = command.toString().trim();
               final ThreadUsage threadUsage = new ThreadUsage(pid, cpu, commandStr);
-              if (maps.containsKey(pid)) {
-                final List<ThreadUsage> usage = maps.get(pid);
+              final ThreadKey threadKey = new ThreadKey(pid, commandStr);
+
+              if (maps.containsKey(threadKey)) {
+                final List<ThreadUsage> usage = maps.get(threadKey);
                 usage.add(threadUsage);
-                maps.put(pid, usage);
+                maps.put(threadKey, usage);
               } else {
                 final List<ThreadUsage> usage = new ArrayList<>();
                 usage.add(threadUsage);
-                maps.put(pid, usage);
+                maps.put(threadKey, usage);
               }
             }
           }
@@ -361,9 +396,9 @@ public class TopExec {
       final List<SwapStats> swapStats,
       final List<ThreadStats> threadStats,
       final List<ParseError> parseErrors,
-      final Map<String, List<ThreadUsage>> map) {
+      final Map<ThreadKey, List<ThreadUsage>> map) {
 
-    final List<String> names =
+    final List<ThreadKey> keys =
         map.entrySet().stream()
             .sorted(
                 (x, y) -> {
@@ -376,12 +411,12 @@ public class TopExec {
             .map(x -> x.getKey())
             .toList();
     List<String> threadTraces = new ArrayList<>();
-    for (String name : names) {
-      List<ThreadUsage> usage = map.get(name);
+    for (ThreadKey key : keys) {
+      List<ThreadUsage> usage = map.get(key);
       if (usage.size() == 0) {
         continue;
       }
-      String commandName = usage.get(0).command();
+      String commandName = key.command;
       List<Float> data = usage.stream().map(x -> (float) x.cpuUsage()).toList();
       threadTraces.add(makeTrace(times, data, commandName));
     }
