@@ -1,5 +1,7 @@
 # dqd: Dremio Query Doctor!
 
+DO NOT USE THIS VERISON USE https://github.com/direkt/dqd-enhanced
+
 Diagnosis all the reasons why things are broken.
 
 NOTE: THIS IS NOT ASSOCIATED WITH DREMIO AND IS NOT AN OFFICIAL SOFTWARE PRODUCT OF DREMIO
